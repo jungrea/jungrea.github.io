@@ -124,6 +124,11 @@ const dateStr = new Date(pubDate).toLocaleDateString('zh-CN', {
   .post-sidebar {
     width: 220px;
     flex-shrink: 0;
+    position: sticky;
+    top: calc(var(--nav-height) + 1.5rem);
+    align-self: flex-start;
+    max-height: calc(100vh - var(--nav-height) - 3rem);
+    overflow-y: auto;
   }
 
   @media (max-width: 960px) {

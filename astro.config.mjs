@@ -8,8 +8,8 @@ export default defineConfig({
     syntaxHighlight: 'shiki',
     shikiConfig: {
       themes: {
-        dark: 'github-dark',
-        light: 'github-light',
+        dark: 'one-dark-pro',
+        light: 'one-light',
       },
       wrap: true,
     },

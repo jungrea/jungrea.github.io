@@ -28,10 +28,27 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
 
     <div class="about-card">
-      <h2>联系我</h2>
-      <ul>
-        <li>GitHub: <a href="https://github.com/jungrea" target="_blank" rel="noopener">@jungrea</a></li>
-      </ul>
+      <h2>联系我 · 关注我</h2>
+      <div class="contact-grid">
+        <div class="contact-item">
+          <div class="contact-icon">🐙</div>
+          <div class="contact-info">
+            <div class="contact-label">GitHub</div>
+            <a href="https://github.com/jungrea" target="_blank" rel="noopener">github.com/jungrea</a>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">💬</div>
+          <div class="contact-info">
+            <div class="contact-label">微信公众号</div>
+            <span>扫描二维码关注</span>
+          </div>
+        </div>
+      </div>
+      <div class="qr-section">
+        <img src="/images/关注.jpg" alt="微信公众号二维码" class="qr-img" />
+        <p class="qr-tip">扫码关注，获取最新文章推送</p>
+      </div>
     </div>
   </div>
 </BaseLayout>
@@ -79,4 +96,71 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     margin-bottom: 0.5rem;
   }
   .about-card li:last-child { margin-bottom: 0; }
+
+  /* 联系方式布局 */
+  .contact-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background: var(--bg-surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+  }
+
+  .contact-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .contact-label {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .contact-info a {
+    font-size: 0.92rem;
+    color: var(--accent);
+    word-break: break-all;
+  }
+  .contact-info span {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+  }
+
+  /* 二维码区域 */
+  .qr-section {
+    text-align: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .qr-img {
+    max-width: 180px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+    transition: transform 0.3s ease;
+  }
+  .qr-img:hover {
+    transform: scale(1.05);
+  }
+
+  .qr-tip {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+  }
 </style>
