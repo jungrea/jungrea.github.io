@@ -1,11 +1,9 @@
 ---
-title: 's19_关于mcp与插件系统'
+title: 'Agent 19 关于mcp与插件系统'
 description: 'MCP 与插件系统：Agent 功能扩展的标准协议和机制。'
-pubDate: 2026-12-01
-tags: ['MCP', '插件', '架构']
+pubDate: 2026-05-21
+tags: ['大模型', 'agent']
 ---
-
-# s19_关于mcp与插件系统
 
 本节主要介绍mcp相关的知识，MCP 全称Model Context Protocol（模型上下文协议），作为增强agent能力的一个重要组成部分，mcp可以直接让agent具备一些调用外部现成开发好的工具的能力，这比自己从头开发要强得多。有了mcp可以说agent具备与外界沟通的与借助外界力量的能力。
 

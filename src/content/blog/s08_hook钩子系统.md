@@ -1,11 +1,9 @@
 ---
-title: 's08_hook钩子系统'
+title: 'Agent 08 hook钩子系统'
 description: 'Hook 钩子系统：在 Agent 生命周期中注入自定义行为的机制。'
-pubDate: 2025-12-21
-tags: ['钩子', '架构']
+pubDate: 2026-04-23
+tags: ['大模型', 'agent']
 ---
-
-# s08_hook钩子系统
 
 Hook功能是Agent系统中比较重要的一个功能。这一章节我们将花比较长的篇幅来详细地介绍一下Hook系统的完整实现。
 

@@ -1,11 +1,9 @@
 ---
-title: 's05_关于skill'
+title: 'Agent 05 关于skill'
 description: 'Skill 系统详解：Agent 如何加载、管理和执行专业技能模块。'
-pubDate: 2025-12-18
-tags: ['技能', '架构']
+pubDate: 2026-04-16
+tags: ['大模型', 'agent']
 ---
-
-# s05_关于skill
 
 > 前言：本系列尽可能详细解读mini agent项目的各个原始基础功能部分，旨在对大模型的认知更近一步，项目github参考（喜欢请给该项目一个🌟以支持）：
 https://github.com/jungrea/mini-agent

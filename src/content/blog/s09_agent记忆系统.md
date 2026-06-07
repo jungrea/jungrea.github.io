@@ -1,11 +1,9 @@
 ---
-title: 's09_agent记忆系统'
+title: 'Agent 09 agent记忆系统'
 description: 'Agent 记忆系统：从短期记忆到长期记忆的多层存储架构。'
-pubDate: 2025-12-22
-tags: ['记忆', '架构']
+pubDate: 2026-04-26
+tags: ['大模型', 'agent']
 ---
-
-# s09_agent记忆系统
 
 记忆系统可以说是Agent中非常重要的功能，好的记忆系统直接可以拉高Agent的一个能力。本节我们详细拆解一下该项目中的记忆系统。
 

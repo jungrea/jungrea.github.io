@@ -1,13 +1,12 @@
 ---
-title: 's04_子agent'
+title: 'Agent 04 子agent'
 description: '子 Agent 机制：如何通过分层代理实现复杂任务的分解与协作。'
-pubDate: 2025-12-17
-tags: ['Agent', '架构']
+pubDate: 2026-04-13
+tags: ['大模型', 'agent']
 ---
 
 [toc]
 
-# s04_子agent
 > 前言：本系列尽可能详细解读mini agent项目的各个原始基础功能部分，旨在对大模型的认知更近一步，项目github参考（喜欢请给该项目一个🌟以支持）：
 https://github.com/jungrea/mini-agent
 

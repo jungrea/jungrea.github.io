@@ -1,7 +1,7 @@
 ---
 title: '解析20篇子模块，悟了Harness工程'
 description: '通过 20 篇子模块的深度解析，领悟 Harness 工程的设计哲学。'
-pubDate: 2026-12-03
+pubDate: 2026-06-02
 tags: ['总结', '架构']
 ---
 
@@ -185,30 +185,29 @@ def agent_loop(messages):
 ## 全部章节
 以下为我的理解解析的该项目章节汇总：
 
-## 全部章节
 
 | 章节 | 主题 | 关键概念 |
 |---|---|---|
-| [s01](./s01_agent_loop/) | Agent 主循环 | `messages` / `while True` / `stop_reason` |
-| [s02](./s02_tool_use/) | 工具调用 | `TOOL_HANDLERS` / 分发表 / 并发执行 |
-| [s03](./s03_permission/) | 权限系统 | `PermissionRule` / 审批流水线 |
-| [s04](./s04_hooks/) | Hook 系统 | `PreToolUse` / `PostToolUse` / 扩展点 |
-| [s05](./s05_todo_write/) | TodoWrite | `TodoItem` / 先计划，再执行 |
-| [s06](./s06_subagent/) | 子智能体 | `fresh messages[]` / 上下文隔离 |
-| [s07](./s07_skill_loading/) | Skill 加载 | `SkillManifest` / 按需注入 |
-| [s08](./s08_context_compact/) | 上下文压缩 | snipCompact / microCompact / toolResultBudget / autoCompact |
-| [s09](./s09_memory/) | 记忆系统 | 选取 / 抽取 / 固化 |
-| [s10](./s10_system_prompt/) | 系统提示词 | 运行时拼装 / 按 section 组合 |
-| [s11](./s11_error_recovery/) | 错误恢复 | token 升档 / 备用模型 / 重试策略 |
-| [s12](./s12_task_system/) | 任务系统 | `TaskRecord` / `blockedBy` / 落盘持久化 |
-| [s13](./s13_background_tasks/) | 后台任务 | 线程化执行 / 通知队列 |
-| [s14](./s14_cron_scheduler/) | 定时调度 | 持久化调度 / 会话级触发 |
-| [s15](./s15_agent_teams/) | 智能体团队 | `MessageBus` / 收件箱 / 权限上浮 |
-| [s16](./s16_team_protocols/) | 团队协议 | 关停握手 / 计划审批 |
-| [s17](./s17_autonomous_agents/) | 自主智能体 | 空闲循环 / 自动认领 / 自组织 |
-| [s18](./s18_worktree_isolation/) | Worktree 隔离 | `WorktreeRecord` / 任务—目录绑定 |
-| [s19](./s19_mcp_plugin/) | MCP 插件 | 多传输层 / 通道路由 / 工具池组装 |
-| [s20](./s20_comprehensive/) | 综合 Agent | 一切机制围绕同一个循环 |
+| [Agent 00](/blog/s00_从一个普通的对话开始) | Agent 主循环 | `messages` / `while True` / `stop_reason` |
+| [Agent 01](/blog/s01_一个简单的多轮对话) | 多轮对话 | `messages` / 上下文维护 |
+| [Agent 02](/blog/s02_多工具系统) | 工具调用 | `TOOL_HANDLERS` / 分发表 / 并发执行 |
+| [Agent 03](/blog/s03_列任务模式) | 列任务模式 | `TodoItem` / 先计划，再执行 |
+| [Agent 04](/blog/s04_子agent) | 子智能体 | `fresh messages[]` / 上下文隔离 |
+| [Agent 05](/blog/s05_关于skill) | Skill 加载 | `SkillManifest` / 按需注入 |
+| [Agent 06](/blog/s06_上下文压缩技术) | 上下文压缩 | snipCompact / microCompact / toolResultBudget / autoCompact |
+| [Agent 07](/blog/s07_权限管理系统) | 权限系统 | `PermissionRule` / 审批流水线 |
+| [Agent 08](/blog/s08_hook钩子系统) | Hook 系统 | `PreToolUse` / `PostToolUse` / 扩展点 |
+| [Agent 09](/blog/s09_agent记忆系统) | 记忆系统 | 选取 / 抽取 / 固化 |
+| [Agent 10](/blog/s10_系统提示词构建) | 系统提示词 | 运行时拼装 / 按 section 组合 |
+| [Agent 11](/blog/s11_错误恢复) | 错误恢复 | token 升档 / 备用模型 / 重试策略 |
+| [Agent 12](/blog/s12_任务系统) | 任务系统 | `TaskRecord` / `blockedBy` / 落盘持久化 |
+| [Agent 13](/blog/s13_后台任务) | 后台任务 | 线程化执行 / 通知队列 |
+| [Agent 14](/blog/s14_定时调度) | 定时调度 | 持久化调度 / 会话级触发 |
+| [Agent 15](/blog/s15_Agent团队协作) | 智能体团队 | `MessageBus` / 收件箱 / 权限上浮 |
+| [Agent 16](/blog/s16_Agent团队协议) | 团队协议 | 关停握手 / 计划审批 |
+| [Agent 17](/blog/s17_团队自主代理) | 自主智能体 | 空闲循环 / 自动认领 / 自组织 |
+| [Agent 18](/blog/s18_工作树与任务隔离) | Worktree 隔离 | `WorktreeRecord` / 任务—目录绑定 |
+| [Agent 19](/blog/s19_关于mcp与插件系统) | MCP 插件 | 多传输层 / 通道路由 / 工具池组装 |
 
 
 
