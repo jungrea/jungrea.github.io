@@ -1,0 +1,116 @@
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="container hero-content">
+    <h1 class="hero-title">Hi, I'm Jungrea 👋</h1>
+    <p class="hero-subtitle">
+      一名热爱技术的开发者，这里记录我的思考、学习与实践。<br/>
+      探索代码世界，分享技术见闻。
+    </p>
+    <div class="hero-links">
+      <a href="/blog" class="btn-primary">📖 浏览文章</a>
+      <a href="/about" class="btn-secondary">👤 关于我</a>
+    </div>
+    <div class="hero-tags">
+      <span class="tag-dot tag-dot-1"></span>
+      <span class="tag-dot tag-dot-2"></span>
+      <span class="tag-dot tag-dot-3"></span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .hero {
+    position: relative;
+    padding: 5rem 0 3rem;
+    text-align: center;
+    overflow: hidden;
+    margin-top: var(--nav-height);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, var(--accent-glow), transparent),
+      radial-gradient(ellipse 80% 60% at 80% 50%, rgba(163, 113, 247, 0.08), transparent),
+      radial-gradient(ellipse 60% 50% at 20% 100%, rgba(63, 185, 80, 0.05), transparent);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.8;
+    max-width: 560px;
+    margin: 0 auto 2rem;
+  }
+
+  .hero-links {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary, .btn-secondary {
+    padding: 0.6rem 1.6rem;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.25s;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid var(--accent);
+  }
+  .btn-primary:hover {
+    background: #4090e0;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--accent-glow);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--bg-surface);
+  }
+
+  .hero-tags {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 2rem;
+  }
+  .tag-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    opacity: 0.4;
+  }
+  .tag-dot-1 { background: var(--accent); }
+  .tag-dot-2 { background: var(--accent-purple); }
+  .tag-dot-3 { background: var(--accent-green); }
+</style>

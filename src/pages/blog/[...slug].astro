@@ -1,6 +1,7 @@
 ---
-import BlogLayout from '../../layouts/BlogLayout.astro';
 import { getCollection } from 'astro:content';
+import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
+import GithubSlugger from 'github-slugger';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -12,8 +13,44 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await post.render();
+
+// 从 markdown body 解析标题（跳过代码块内的 #）
+function extractHeadings(md: string) {
+  const slugger = new GithubSlugger();
+  const headings: Array<{ depth: number; text: string; slug: string }> = [];
+  const lines = md.split('\n');
+  let inCodeBlock = false;
+  for (const line of lines) {
+    // 判断代码块边界
+    if (line.trimStart().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    if (inCodeBlock) continue;
+    
+    // 匹配 h2-h4 标题
+    const match = line.match(/^(#{2,4})\s+(.+)$/);
+    if (match) {
+      headings.push({
+        depth: match[1].length,
+        text: match[2].trim(),
+        slug: slugger.slug(match[2].trim()),
+      });
+    }
+  }
+  return headings;
+}
+
+const headings = extractHeadings(post.body || '');
 ---
 
-<BlogLayout title={post.data.title} description={post.data.description} pubDate={post.data.pubDate}>
+<BlogPostLayout
+  title={post.data.title}
+  description={post.data.description}
+  pubDate={post.data.pubDate}
+  tags={post.data.tags}
+  headings={headings}
+  slug={post.slug}
+>
   <Content />
-</BlogLayout>
+</BlogPostLayout>

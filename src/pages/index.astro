@@ -1,33 +1,78 @@
 ---
-import BlogLayout from '../layouts/BlogLayout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
 
-const posts = await getCollection('blog');
-posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const posts = (await getCollection('blog'))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 6);
 ---
 
-<BlogLayout title="首页">
-  <section>
-    <h2>最新文章</h2>
-    <ul>
-      {
-        posts.map(post => (
-          <li>
-            <a href={`/blog/${post.slug}`}>{post.data.title}</a>
-            <span class="date">{post.data.pubDate.toLocaleDateString('zh-CN')}</span>
-            {post.data.description && <p class="desc">{post.data.description}</p>}
-          </li>
-        ))
-      }
-    </ul>
+<BaseLayout title="My Blog — 代码与思考" description="一个技术博客，记录学习、实践与思考。">
+  <Hero />
+
+  <section class="container section">
+    <div class="section-header">
+      <h2 class="section-title">📝 最新文章</h2>
+      <a href="/blog" class="section-more">查看全部 →</a>
+    </div>
+
+    {posts.length === 0 ? (
+      <div class="empty">
+        <p>还没有文章，开始写第一篇吧 ✍️</p>
+      </div>
+    ) : (
+      <div class="post-grid">
+        {posts.map((post, i) => (
+          <div class={`stagger-${i + 1}`}>
+            <PostCard post={{ ...post.data, slug: post.slug }} />
+          </div>
+        ))}
+      </div>
+    )}
   </section>
-</BlogLayout>
+</BaseLayout>
 
 <style>
-  ul { list-style: none; padding: 0; }
-  li { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee; }
-  a { font-size: 1.2rem; font-weight: 600; color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  .date { display: block; font-size: 0.85rem; color: #888; margin-top: 0.25rem; }
-  .desc { color: #555; margin: 0.3rem 0 0 0; font-size: 0.95rem; }
+  .section {
+    padding: 2rem 1.5rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .section-more {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+  .section-more:hover { color: var(--accent); }
+
+  .post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--text-tertiary);
+  }
+
+  @media (max-width: 500px) {
+    .post-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>

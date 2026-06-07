@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+// 按照年份分组
+const grouped: Record<string, typeof allPosts> = {};
+allPosts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .forEach(post => {
+    const year = post.data.pubDate.getFullYear().toString();
+    if (!grouped[year]) grouped[year] = [];
+    grouped[year].push(post);
+  });
+const years = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
+---
+
+<BaseLayout title="文章列表 — My Blog" description="所有文章列表" currentPath="/blog">
+  <div class="container section">
+    <h1 class="page-title">📖 全部文章</h1>
+    <p class="page-subtitle">共 {allPosts.length} 篇</p>
+
+    {years.map(year => (
+      <section class="year-section">
+        <h2 class="year-title">{year}</h2>
+        <div class="post-list">
+          {grouped[year].map((post, i) => (
+            <div class="stagger-1" style={`animation-delay: ${i * 0.05}s`}>
+              <PostCard post={{ ...post.data, slug: post.slug }} />
+            </div>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .section { padding: 3rem 1.5rem 2rem; }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+  }
+
+  .page-subtitle {
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .year-section { margin-bottom: 2.5rem; }
+  
+  .year-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+</style>

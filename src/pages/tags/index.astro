@@ -1,0 +1,85 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TagCloud from '../../components/TagCloud.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog');
+
+// 统计标签
+const tagMap = new Map<string, number>();
+posts.forEach(post => {
+  (post.data.tags || []).forEach(tag => {
+    tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+  });
+});
+
+const tags = Array.from(tagMap.entries())
+  .map(([tag, count]) => ({ tag, count }))
+  .sort((a, b) => b.count - a.count);
+---
+
+<BaseLayout title="标签云 — My Blog" description="按标签浏览文章" currentPath="/tags">
+  <div class="container section">
+    <h1 class="page-title">🏷️ 标签云</h1>
+    <p class="page-subtitle">共 {tags.length} 个标签，{posts.length} 篇文章</p>
+    <TagCloud tags={tags} />
+
+    <div class="tag-list">
+      {tags.map(({ tag, count }) => (
+        <a href={`/tags/${tag.toLowerCase().replace(/\s+/g, '-')}`} class="tag-row">
+          <span class="tag-name">{tag}</span>
+          <span class="tag-post-count">{count} 篇</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .section { padding: 3rem 1.5rem 2rem; }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+
+  .page-subtitle {
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .tag-list {
+    max-width: 500px;
+    margin: 3rem auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .tag-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+  .tag-row:hover {
+    background: var(--bg-surface);
+    color: var(--accent);
+  }
+
+  .tag-name { font-weight: 500; }
+
+  .tag-post-count {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+  }
+</style>

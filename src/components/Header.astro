@@ -1,0 +1,121 @@
+---
+const { currentPath = '/' } = Astro.props;
+
+const navLinks = [
+  { href: '/', label: '首页' },
+  { href: '/blog', label: '文章' },
+  { href: '/tags', label: '标签' },
+  { href: '/about', label: '关于' },
+];
+---
+
+<header class="header">
+  <div class="container-wide header-inner">
+    <a href="/" class="logo" aria-label="首页">
+      <span class="logo-icon">&lt;/&gt;</span>
+      <span class="logo-text">My Blog</span>
+    </a>
+
+    <nav class="nav">
+      {navLinks.map(link => (
+        <a href={link.href} class={`nav-link${currentPath === link.href ? ' active' : ''}`}>
+          {link.label}
+        </a>
+      ))}
+      <button id="themeToggle" class="theme-toggle" aria-label="切换主题" title="切换深色/浅色模式">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    height: var(--nav-height);
+    background: var(--bg-body);
+    border-bottom: 1px solid var(--border-light);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+  .logo:hover { color: var(--accent); }
+
+  .logo-icon {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .nav-link {
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .nav-link:hover { color: var(--text-primary); background: var(--bg-surface); }
+  .nav-link.active { color: var(--accent); }
+
+  .theme-toggle {
+    background: none;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0.35rem 0.5rem;
+    margin-left: 0.5rem;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+  }
+  .theme-toggle:hover { border-color: var(--border); background: var(--bg-surface); }
+
+  .icon-sun, .icon-moon {
+    line-height: 1;
+  }
+  :root.light .icon-moon { display: none; }
+  :root:not(.light) .icon-sun { display: none; }
+</style>
+
+<script>
+  const btn = document.getElementById('themeToggle');
+  const root = document.documentElement;
+
+  // 初始读取 localStorage
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') root.classList.add('light');
+  else if (!saved && window.matchMedia('(prefers-color-scheme: light)').matches) root.classList.add('light');
+
+  btn?.addEventListener('click', () => {
+    root.classList.toggle('light');
+    localStorage.setItem('theme', root.classList.contains('light') ? 'light' : 'dark');
+  });
+</script>

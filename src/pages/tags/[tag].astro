@@ -1,0 +1,90 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  const tagSet = new Set<string>();
+  posts.forEach(post => {
+    (post.data.tags || []).forEach(tag => {
+      tagSet.add(tag.toLowerCase().replace(/\s+/g, '-'));
+    });
+  });
+  return Array.from(tagSet).map(tagSlug => ({
+    params: { tag: tagSlug },
+  }));
+}
+
+const { tag } = Astro.params as { tag: string };
+
+const allPosts = await getCollection('blog');
+const posts = allPosts
+  .filter(post =>
+    (post.data.tags || []).some(
+      t => t.toLowerCase().replace(/\s+/g, '-') === tag
+    )
+  )
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// 找原始标签名（带大写和空格）
+const originalTag = allPosts
+  .flatMap(p => p.data.tags || [])
+  .find(t => t.toLowerCase().replace(/\s+/g, '-') === tag) || tag;
+---
+
+<BaseLayout title={`${originalTag} 标签 — My Blog`} description={`${originalTag} 相关的文章列表`}>
+  <div class="container section">
+    <h1 class="page-title">🏷️ {originalTag}</h1>
+    <p class="page-subtitle">共 {posts.length} 篇文章</p>
+
+    {posts.length === 0 ? (
+      <div class="empty">
+        <p>该标签下暂无文章</p>
+        <a href="/tags">← 返回标签云</a>
+      </div>
+    ) : (
+      <div class="post-grid">
+        {posts.map((post, i) => (
+          <div class={`stagger-${(i % 6) + 1}`}>
+            <PostCard post={{ ...post.data, slug: post.slug }} />
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .section { padding: 3rem 1.5rem 2rem; }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+  }
+
+  .page-subtitle {
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+
+  .post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--text-tertiary);
+  }
+  .empty a { color: var(--accent); }
+
+  @media (max-width: 500px) {
+    .post-grid { grid-template-columns: 1fr; }
+  }
+</style>

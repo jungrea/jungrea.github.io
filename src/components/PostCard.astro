@@ -1,0 +1,93 @@
+---
+import TagBadge from './TagBadge.astro';
+
+const { post } = Astro.props;
+const { title, description, pubDate, tags, slug } = post.data || post;
+const url = `/blog/${slug || post.slug}`;
+
+// 格式化日期
+const dateStr = new Date(pubDate).toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<article class="card animate-in">
+  <a href={url} class="card-link">
+    <h2 class="card-title">{title}</h2>
+    {description && <p class="card-desc">{description}</p>}
+  </a>
+  <div class="card-meta">
+    <time class="card-date" datetime={pubDate instanceof Date ? pubDate.toISOString() : String(pubDate)}>
+      {dateStr}
+    </time>
+    {tags && tags.length > 0 && (
+      <span class="card-tags">
+        {tags.map((tag: string) => <TagBadge tag={tag} />)}
+      </span>
+    )}
+  </div>
+</article>
+
+<style>
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    opacity: 0;
+  }
+  .card:hover {
+    border-color: var(--border);
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .card-link {
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+  .card-link:hover { color: var(--text-primary); }
+
+  .card-title {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    transition: color 0.2s;
+  }
+  .card:hover .card-title { color: var(--accent); }
+
+  .card-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .card-date {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+</style>

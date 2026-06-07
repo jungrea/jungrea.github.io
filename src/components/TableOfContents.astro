@@ -1,0 +1,63 @@
+---
+const { headings = [] } = Astro.props;
+if (!headings || headings.length === 0) return null;
+---
+
+<nav class="toc" aria-label="目录">
+  <h4 class="toc-title">📑 目录</h4>
+  <ul class="toc-list">
+    {headings.map(heading => (
+      <li class={`toc-item toc-depth-${heading.depth}`}>
+        <a href={`#${heading.slug}`}>{heading.text}</a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .toc {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    position: sticky;
+    top: calc(var(--nav-height) + 1.5rem);
+  }
+
+  .toc-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .toc-item {
+    margin-bottom: 0.3rem;
+    line-height: 1.4;
+  }
+  .toc-item a {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.15s;
+    display: block;
+    padding: 0.15rem 0;
+  }
+  .toc-item a:hover { color: var(--accent); }
+
+  .toc-depth-3 a { padding-left: 1rem; font-size: 0.8rem; }
+  .toc-depth-4 a { padding-left: 2rem; font-size: 0.78rem; color: var(--text-tertiary); }
+
+  @media (max-width: 768px) {
+    .toc { display: none; }
+  }
+</style>
