@@ -4,7 +4,7 @@
   --bg-surface: #161b22;
   --bg-card: #1c2333;
   --bg-card-hover: #21283b;
-  --bg-code: #1a1f2e;
+  --bg-code: #151b22;
   
   --text-primary: #e6edf3;
   --text-secondary: #8b949e;
@@ -39,7 +39,7 @@
   --bg-surface: #f6f8fa;
   --bg-card: #ffffff;
   --bg-card-hover: #f3f4f6;
-  --bg-code: #f6f8fa;
+  --bg-code: #f3f6fa;
   
   --text-primary: #1f2328;
   --text-secondary: #656d76;
@@ -105,32 +105,88 @@ hr {
   margin: 2.5rem 0;
 }
 
-/* ========== 代码 ========== */
+/* ========== 代码块（Shiki 双主题语法高亮）========== */
+/* 深色模式（默认）：用 --shiki-dark 系列变量 */
+:root:not(.light) .astro-code {
+  background-color: var(--shiki-dark-bg) !important;
+  border: 1px solid var(--border);
+}
+:root:not(.light) .astro-code .line span {
+  color: var(--shiki-dark) !important;
+}
+
+/* 亮色模式：inline 样式自动生效（不加 override） */
+:root.light .astro-code {
+  border: 1px solid var(--border);
+}
+
+/* 两模式共享样式 */
+.astro-code {
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem !important;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  position: relative;
+  box-shadow: var(--shadow);
+}
+
+/* 代码块顶部语言标签 */
+.astro-code::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-light);
+  border-left: 1px solid var(--border-light);
+  border-radius: 0 var(--radius-lg) 0 var(--radius);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 1;
+}
+
+/* 代码块内 token 格式重置 */
+.astro-code span {
+  font-family: var(--font-mono);
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* 行高 */
+.astro-code .line {
+  display: block;
+  min-height: 1.5em;
+}
+
+/* 代码高亮行 */
+.astro-code .highlight {
+  background: rgba(255, 255, 255, 0.06);
+  display: block;
+}
+:root.light .astro-code .highlight {
+  background: rgba(0, 0, 0, 0.04);
+}/* ========== 行内代码 ========== */
 code {
   font-family: var(--font-mono);
-  font-size: 0.9em;
+  font-size: 0.88em;
   padding: 0.15em 0.4em;
   background: var(--bg-code);
   border: 1px solid var(--border-light);
   border-radius: 4px;
   color: var(--accent-orange);
 }
-
-pre {
-  background: var(--bg-code);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
-  margin: 1.5rem 0;
-  overflow-x: auto;
-  font-size: 0.88rem;
-  line-height: 1.6;
-}
 pre code {
   background: none;
   border: none;
   padding: 0;
-  color: var(--text-primary);
+  color: inherit;
   font-size: inherit;
 }
 
