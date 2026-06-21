@@ -13,11 +13,6 @@ const navLinks = [
 
 <header class="header">
   <div class="container-wide header-inner">
-    <a href={withBase('/')} class="logo" aria-label="首页">
-      <span class="logo-icon">&lt;/&gt;</span>
-      <span class="logo-text">My Blog</span>
-    </a>
-
     <nav class="nav">
       {navLinks.map(link => (
         <a href={link.href} class={`nav-link${currentPath === link.href ? ' active' : ''}`}>
@@ -49,25 +44,8 @@ const navLinks = [
   .header-inner {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     height: 100%;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--text-primary);
-    text-decoration: none;
-  }
-  .logo:hover { color: var(--accent); }
-
-  .logo-icon {
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
   }
 
   .nav {
