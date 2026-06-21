@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import { getCollection } from 'astro:content';
+import { withBase } from '../../utils/url';
 
 const allPosts = await getCollection('blog');
 
@@ -33,7 +34,7 @@ const months = [...monthMap.entries()].sort((a, b) => b[0].localeCompare(a[0]));
 const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
 ---
 
-<BaseLayout title="文章列表 — My Blog" description="所有文章列表" currentPath="/blog">
+<BaseLayout title="文章列表 — My Blog" description="所有文章列表" currentPath={withBase('/blog')}>
   <div class="section">
     <div class="blog-header">
       <h1 class="page-title">📖 全部文章</h1>

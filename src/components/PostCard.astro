@@ -1,9 +1,11 @@
 ---
 import TagBadge from './TagBadge.astro';
 
+import { withBase } from '../utils/url';
+
 const { post } = Astro.props;
 const { title, description, pubDate, tags, slug } = post.data || post;
-const url = `/blog/${slug || post.slug}`;
+const url = withBase(`/blog/${slug || post.slug}`);
 
 // 格式化日期
 const dateStr = new Date(pubDate).toLocaleDateString('zh-CN', {

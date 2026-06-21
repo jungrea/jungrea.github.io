@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
 import { getCollection } from 'astro:content';
+import { withBase } from '../../utils/url';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -41,7 +42,7 @@ const originalTag = allPosts
     {posts.length === 0 ? (
       <div class="empty">
         <p>该标签下暂无文章</p>
-        <a href="/tags">← 返回标签云</a>
+        <a href={withBase('/tags')}>← 返回标签云</a>
       </div>
     ) : (
       <div class="post-grid">

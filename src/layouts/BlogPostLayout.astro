@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import TagBadge from '../components/TagBadge.astro';
+import { withBase } from '../utils/url';
 
 interface Props {
   title: string;
@@ -28,7 +29,7 @@ const dateStr = new Date(pubDate).toLocaleDateString('zh-CN', {
 });
 ---
 
-<BaseLayout title={`${title} - My Blog`} description={description} currentPath={`/blog/${slug}`}>
+<BaseLayout title={`${title} - My Blog`} description={description} currentPath={withBase(`/blog/${slug}`)}>
   <article class="post-wrapper">
     <!-- 文章头部 -->
     <header class="post-header">

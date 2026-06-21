@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TagCloud from '../../components/TagCloud.astro';
 import { getCollection } from 'astro:content';
+import { withBase } from '../../utils/url';
 
 const posts = await getCollection('blog');
 
@@ -18,7 +19,7 @@ const tags = Array.from(tagMap.entries())
   .sort((a, b) => b.count - a.count);
 ---
 
-<BaseLayout title="标签云 — My Blog" description="按标签浏览文章" currentPath="/tags">
+<BaseLayout title="标签云 — My Blog" description="按标签浏览文章" currentPath={withBase('/tags')}>
   <div class="container section">
     <h1 class="page-title">🏷️ 标签云</h1>
     <p class="page-subtitle">共 {tags.length} 个标签，{posts.length} 篇文章</p>
@@ -26,7 +27,7 @@ const tags = Array.from(tagMap.entries())
 
     <div class="tag-list">
       {tags.map(({ tag, count }) => (
-        <a href={`/tags/${tag.toLowerCase().replace(/\s+/g, '-')}`} class="tag-row">
+        <a href={withBase(`/tags/${tag.toLowerCase().replace(/\s+/g, '-')}`)} class="tag-row">
           <span class="tag-name">{tag}</span>
           <span class="tag-post-count">{count} 篇</span>
         </a>

@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
+import { withBase } from '../utils/url';
 
 const posts = (await getCollection('blog'))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
@@ -15,7 +16,7 @@ const posts = (await getCollection('blog'))
   <section class="container section">
     <div class="section-header">
       <h2 class="section-title">📝 最新文章</h2>
-      <a href="/blog" class="section-more">查看全部 →</a>
+      <a href={withBase('/blog')} class="section-more">查看全部 →</a>
     </div>
 
     {posts.length === 0 ? (

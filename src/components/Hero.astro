@@ -1,3 +1,7 @@
+---
+import { withBase } from '../utils/url';
+---
+
 <div class="hero">
   <div class="hero-bg"></div>
   <div class="container hero-content">
@@ -7,8 +11,8 @@
       探索代码世界，分享技术见闻。
     </p>
     <div class="hero-links">
-      <a href="/blog" class="btn-primary">📖 浏览文章</a>
-      <a href="/about" class="btn-secondary">👤 关于我</a>
+      <a href={withBase('/blog')} class="btn-primary">📖 浏览文章</a>
+      <a href={withBase('/about')} class="btn-secondary">👤 关于我</a>
     </div>
     <div class="hero-tags">
       <span class="tag-dot tag-dot-1"></span>

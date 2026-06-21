@@ -1,5 +1,7 @@
 ---
-const { tag, href = `/tags/${tag?.toLowerCase().replace(/\s+/g, '-')}` } = Astro.props;
+import { withBase } from '../utils/url';
+
+const { tag, href = withBase(`/tags/${tag?.toLowerCase().replace(/\s+/g, '-')}`) } = Astro.props;
 ---
 
 <a href={href} class="tag">
