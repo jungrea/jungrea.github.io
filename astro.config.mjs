@@ -4,7 +4,7 @@ import { remarkDefaultLang } from './src/plugins/remark-default-lang.mjs';
 
 export default defineConfig({
   site: 'https://jungrea.github.io',
-  base: '/my-blog',
+  base: '/blog',
   markdown: {
     syntaxHighlight: 'shiki',
     shikiConfig: {
