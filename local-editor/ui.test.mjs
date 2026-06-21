@@ -1,0 +1,98 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import fs from 'node:fs/promises';
+
+const html = await fs.readFile(new URL('./public/index.html', import.meta.url), 'utf8');
+
+test('article metadata lives in a top-right toolbar drawer instead of a fixed top panel', () => {
+  const toolbarRightStart = html.indexOf('<div class="toolbar-right">');
+  const headerEnd = html.indexOf('</header>', toolbarRightStart);
+  const toolbarRightHtml = html.slice(toolbarRightStart, headerEnd);
+
+  assert.ok(toolbarRightStart > -1, 'toolbar-right should exist');
+  assert.match(toolbarRightHtml, /class="info-drawer"/);
+  assert.match(toolbarRightHtml, /文章基础信息/);
+  assert.doesNotMatch(html, /<section class="meta-panel">/);
+});
+
+test('article metadata drawer closes cleanly without focus-within sticking', () => {
+  assert.doesNotMatch(html, /\.info-drawer:focus-within/);
+  assert.match(html, /function closeInfoDrawer/);
+  assert.match(html, /document\.addEventListener\('click'/);
+});
+
+test('editor supports autosave status and debounce function', () => {
+  assert.match(html, /id="autoSaveStatus"/);
+  assert.match(html, /AUTO_SAVE_DELAY/);
+  assert.match(html, /function scheduleAutoSave/);
+  assert.match(html, /function autoSave/);
+});
+
+test('theme selector keeps only reference themes 1, 3, and 6', () => {
+  assert.match(html, /id="themeSelect"/);
+  assert.match(html, /value="light"/);
+  assert.match(html, /value="github-dark"/);
+  assert.match(html, /value="dracula"/);
+  assert.doesNotMatch(html, /value="dark-plus"/);
+  assert.doesNotMatch(html, /value="one-dark"/);
+  assert.doesNotMatch(html, /value="nord"/);
+  assert.match(html, /function setTheme/);
+});
+
+test('markdown preview uses themed rendering styles', () => {
+  assert.match(html, /--h1-color/);
+  assert.match(html, /--code-bg/);
+  assert.match(html, /--blockquote-bg/);
+  assert.match(html, /\.preview h1::before/);
+  assert.match(html, /\.code-block/);
+  assert.match(html, /function enhanceCodeBlocks/);
+});
+
+test('light theme keeps pane titles and tags readable', () => {
+  assert.match(html, /\.pane-title \{[\s\S]*background: var\(--surface-subtle\)/);
+  assert.match(html, /\.pane-title \{[\s\S]*color: var\(--text\)/);
+  assert.match(html, /\.tag \{[\s\S]*color: var\(--primary-strong\)/);
+  assert.doesNotMatch(html, /\.tag \{[^}]*#bfdbfe/);
+  assert.doesNotMatch(html, /\.pane-title \{[^}]*rgba\(15, 23, 42, 0\.52\)/);
+});
+
+test('floating panels are readable in light theme', () => {
+  assert.match(html, /\.info-panel \{[\s\S]*background: var\(--surface-solid\)/);
+  assert.match(html, /\.box \{[\s\S]*background: var\(--surface-solid\)/);
+  assert.match(html, /\.log \{[\s\S]*color: var\(--text\)/);
+  assert.match(html, /\.log \{[\s\S]*background: var\(--surface-subtle\)/);
+  assert.doesNotMatch(html, /\.info-panel \{[^}]*rgba\(2, 6, 23, 0\.94\)/);
+  assert.doesNotMatch(html, /\.box \{[^}]*rgba\(2, 6, 23, 0\.9\)/);
+  assert.doesNotMatch(html, /\.log \{[^}]*#cbd5e1/);
+});
+
+test('sidebar supports year and month filtering by pubDate', () => {
+  assert.match(html, /id="yearFilters"/);
+  assert.match(html, /id="monthFilters"/);
+  assert.match(html, /function buildDateFilters/);
+  assert.match(html, /function toggleDateFilter/);
+  assert.match(html, /activeFilterType/);
+  assert.match(html, /post\.meta\.pubDate/);
+});
+
+test('article file can be renamed from title or slug explicitly without stretching toolbar', () => {
+  assert.match(html, /id="renamePostBtn"/);
+  assert.match(html, /function renameCurrentPost/);
+  assert.match(html, /\/api\/post\/rename/);
+  assert.match(html, /\.toolbar-left, \.toolbar-right \{[\s\S]*flex-wrap: nowrap/);
+  assert.match(html, /\.status \{[\s\S]*text-overflow: ellipsis/);
+  assert.match(html, /closeInfoDrawer\(\);[\s\S]*setStatus\('已重命名'/);
+});
+
+test('single-pane edit and preview modes use full-width workspace', () => {
+  assert.match(html, /body\.preview-only \.workspace \{ grid-template-columns: 1fr; \}/);
+  assert.match(html, /body\.edit-only \.workspace \{ grid-template-columns: 1fr; \}/);
+  assert.doesNotMatch(html, /body\.preview-only \.workspace \{ grid-template-columns: 0 1fr; \}/);
+  assert.doesNotMatch(html, /body\.edit-only \.workspace \{ grid-template-columns: 1fr 0; \}/);
+});
+
+test('split view supports linked scrolling between editor and preview', () => {
+  assert.match(html, /id="syncScrollBtn"/);
+  assert.match(html, /function syncScroll/);
+  assert.match(html, /syncScrollEnabled/);
+});

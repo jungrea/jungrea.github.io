@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "write": "node local-editor/server.mjs",
+    "test:editor": "node --test local-editor/*.test.mjs"
   },
   "dependencies": {
     "astro": "^4.0.0",

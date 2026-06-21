@@ -27,10 +27,31 @@ src/
 
 ```bash
 npm install
-npm run dev      # 启动开发服务器
+npm run dev      # 启动开发服务器（热更新，边改边看）
 npm run build    # 构建生产版本
-npm run preview  # 预览构建结果
+npm run preview  # 预览构建结果（模拟生产环境）
 ```
+
+> 推送前建议先执行 `npm run build && npm run preview` 预览，确认无误后再推送。
+
+## 本地写作助手
+
+如果不想直接编辑 `.md` 文件，可以启动本地网页写作助手：
+
+```bash
+npm run write
+```
+
+然后访问 `http://127.0.0.1:4310`。
+
+写作助手只在本地运行，不会生成线上页面。它支持：
+
+- 网页式 Markdown 编辑、实时预览、自动保存与分栏联动滚动
+- 支持 Light、GitHub Dark、Dracula 三套写作/预览主题
+- 读取、搜索、按年份/月筛选、保存、删除 `src/content/blog/` 下的文章
+- 新文章自动按 `YYYY/MM/slug.md` 保存，方便按年月管理
+- 粘贴图片并保存到 `public/images/YYYY/MM/`
+- 一键构建、本地预览、查看 Git 改动、提交并推送
 
 ## 写作
 

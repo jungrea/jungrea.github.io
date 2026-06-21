@@ -1,0 +1,1318 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>本地写作助手</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css" id="hljs-github-light">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css" id="hljs-github-dark" disabled>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/base16/dracula.min.css" id="hljs-dracula" disabled>
+  <style>
+    :root {
+      --primary: #5b6cff;
+      --primary-2: #4353f0;
+      --primary-strong: #4353f0;
+      --primary-soft: rgba(91, 108, 255, 0.14);
+      --accent: #06b6d4;
+      --accent-soft: rgba(6, 182, 212, 0.12);
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --bg: #f4f7fb;
+      --bg-radial: radial-gradient(circle at 12% 8%, rgba(91, 108, 255, 0.18), transparent 28%), radial-gradient(circle at 88% 5%, rgba(6, 182, 212, 0.18), transparent 26%), linear-gradient(135deg, #f8fbff 0%, #eef3fb 100%);
+      --panel: rgba(255, 255, 255, 0.78);
+      --panel-2: #ffffff;
+      --surface-solid: #ffffff;
+      --surface-subtle: #f8fafc;
+      --surface-hover: #eef2ff;
+      --text: #172033;
+      --muted: #667085;
+      --text-faint: #98a2b3;
+      --line: rgba(99, 115, 129, 0.18);
+      --border-strong: rgba(91, 108, 255, 0.28);
+      --code-bg: #f6f8fb;
+      --code-toolbar: #eef2ff;
+      --code-border: rgba(91, 108, 255, 0.24);
+      --code-text: #24292f;
+      --code-shadow: rgba(15, 23, 42, 0.12);
+      --blockquote-bg: rgba(91, 108, 255, 0.09);
+      --table-alt: rgba(91, 108, 255, 0.035);
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --theme-dot: #5b6cff;
+      --h1-color: #3847d8;
+      --h2-color: #0e7490;
+      --h3-color: #7c3aed;
+      --h4-color: #0f766e;
+      --h5-color: #c2410c;
+      --h6-color: #64748b;
+      --marker-color: #5b6cff;
+      --strong-color: #172033;
+      --em-color: #0e7490;
+      --mark-bg: rgba(250, 204, 21, 0.28);
+      --mark-text: #713f12;
+      --radius: 16px;
+      color-scheme: light;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    [data-theme="github-dark"] {
+      --primary: #58a6ff;
+      --primary-2: #2563eb;
+      --primary-strong: #79c0ff;
+      --primary-soft: rgba(88, 166, 255, 0.18);
+      --accent: #3fb950;
+      --accent-soft: rgba(63, 185, 80, 0.13);
+      --bg: #0d1117;
+      --bg-radial: radial-gradient(circle at 12% 0%, rgba(88, 166, 255, 0.13), transparent 30%), radial-gradient(circle at 92% 10%, rgba(63, 185, 80, 0.10), transparent 25%), linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+      --panel: rgba(22, 27, 34, 0.86);
+      --panel-2: #161b22;
+      --surface-solid: #161b22;
+      --surface-subtle: #21262d;
+      --surface-hover: #30363d;
+      --text: #c9d1d9;
+      --muted: #8b949e;
+      --text-faint: #6e7681;
+      --line: rgba(139, 148, 158, 0.24);
+      --border-strong: rgba(88, 166, 255, 0.38);
+      --code-bg: #0d1117;
+      --code-toolbar: #161b22;
+      --code-border: rgba(88, 166, 255, 0.32);
+      --code-text: #c9d1d9;
+      --code-shadow: rgba(0, 0, 0, 0.44);
+      --blockquote-bg: rgba(88, 166, 255, 0.10);
+      --table-alt: rgba(110, 118, 129, 0.10);
+      --shadow-soft: 0 12px 34px rgba(0, 0, 0, 0.30);
+      --theme-dot: #58a6ff;
+      --h1-color: #79c0ff;
+      --h2-color: #d2a8ff;
+      --h3-color: #7ee787;
+      --h4-color: #ffa657;
+      --h5-color: #ff7b72;
+      --h6-color: #a5d6ff;
+      --marker-color: #58a6ff;
+      --strong-color: #f0f6fc;
+      --em-color: #d2a8ff;
+      --mark-bg: rgba(187, 128, 9, 0.32);
+      --mark-text: #fff8c5;
+      color-scheme: dark;
+    }
+
+    [data-theme="dracula"] {
+      --primary: #bd93f9;
+      --primary-2: #7c3aed;
+      --primary-strong: #ff79c6;
+      --primary-soft: rgba(189, 147, 249, 0.19);
+      --accent: #50fa7b;
+      --accent-soft: rgba(80, 250, 123, 0.13);
+      --bg: #282a36;
+      --bg-radial: radial-gradient(circle at 12% 0%, rgba(189, 147, 249, 0.18), transparent 30%), radial-gradient(circle at 88% 8%, rgba(255, 121, 198, 0.14), transparent 26%), linear-gradient(135deg, #282a36 0%, #1f2029 100%);
+      --panel: rgba(40, 42, 54, 0.88);
+      --panel-2: #282a36;
+      --surface-solid: #282a36;
+      --surface-subtle: #343746;
+      --surface-hover: #44475a;
+      --text: #f8f8f2;
+      --muted: #c7c7d1;
+      --text-faint: #8b8c9b;
+      --line: rgba(248, 248, 242, 0.18);
+      --border-strong: rgba(189, 147, 249, 0.38);
+      --code-bg: #21222c;
+      --code-toolbar: #282a36;
+      --code-border: rgba(189, 147, 249, 0.36);
+      --code-text: #f8f8f2;
+      --code-shadow: rgba(0, 0, 0, 0.44);
+      --blockquote-bg: rgba(189, 147, 249, 0.13);
+      --table-alt: rgba(255, 255, 255, 0.04);
+      --shadow-soft: 0 12px 34px rgba(0, 0, 0, 0.30);
+      --theme-dot: #bd93f9;
+      --h1-color: #bd93f9;
+      --h2-color: #ff79c6;
+      --h3-color: #50fa7b;
+      --h4-color: #f1fa8c;
+      --h5-color: #ffb86c;
+      --h6-color: #8be9fd;
+      --marker-color: #bd93f9;
+      --strong-color: #ffffff;
+      --em-color: #ff79c6;
+      --mark-bg: rgba(241, 250, 140, 0.22);
+      --mark-text: #ffffcc;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      color: var(--text);
+      background: var(--bg-radial);
+    }
+    button, input, textarea { font: inherit; }
+    button {
+      border: 1px solid var(--line);
+      background: var(--surface-solid);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.55rem 0.8rem;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--primary); color: var(--primary-strong); }
+    button.primary { background: var(--primary-2); border-color: var(--primary-2); color: white; }
+    button.success { background: #15803d; border-color: #15803d; color: white; }
+    button.danger { background: #991b1b; border-color: #991b1b; color: white; }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--surface-solid);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.65rem 0.75rem;
+      outline: none;
+    }
+    input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14); }
+
+    .app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; overflow: hidden; }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      min-height: 0;
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      padding: 1rem;
+      overflow: hidden;
+    }
+    .brand { margin-bottom: 1rem; flex: 0 0 auto; }
+    .brand h1 { margin: 0 0 0.25rem; font-size: 1.25rem; }
+    .brand p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+    .side-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem; flex: 0 0 auto; }
+    .search { margin-bottom: 0.65rem; flex: 0 0 auto; }
+    .date-filter-panel { flex: 0 0 auto; display: grid; gap: 0.6rem; margin: 0 0 0.7rem; padding: 0.75rem; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--surface-solid) 76%, transparent); }
+    .filter-group { display: grid; gap: 0.45rem; }
+    .filter-title { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; color: var(--muted); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.06em; }
+    .filter-list { display: flex; flex-wrap: wrap; gap: 0.4rem; max-height: 4.8rem; overflow: auto; padding-right: 0.2rem; }
+    .filter-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.28rem 0.55rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-solid); color: var(--muted); font-size: 0.78rem; font-weight: 750; }
+    .filter-chip:hover { border-color: var(--primary); color: var(--primary-strong); }
+    .filter-chip.active { border-color: var(--primary); color: var(--primary-strong); background: var(--primary-soft); }
+    .filter-count { opacity: 0.72; font-size: 0.72rem; }
+    .filter-reset { border: 0; padding: 0; background: transparent; color: var(--primary-strong); font-size: 0.72rem; font-weight: 800; }
+    .filter-reset[hidden] { display: none; }
+    .list-hint { color: var(--muted); font-size: 0.75rem; margin: 0 0 0.5rem; flex: 0 0 auto; }
+    .post-list { display: flex; flex: 1 1 auto; min-height: 0; flex-direction: column; gap: 0.45rem; overflow-y: auto; padding-right: 0.25rem; overscroll-behavior: contain; }
+    .post-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.7rem;
+      background: var(--surface-solid);
+      cursor: pointer;
+    }
+    .post-item:hover, .post-item.active { border-color: var(--primary); background: var(--primary-soft); }
+    .post-title { font-weight: 800; line-height: 1.35; color: var(--text); }
+    .post-meta { margin-top: 0.35rem; color: var(--muted); font-size: 0.78rem; font-weight: 650; word-break: break-all; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.45rem; }
+    .tag { font-size: 0.72rem; color: var(--primary-strong); background: var(--primary-soft); border: 1px solid var(--border-strong); border-radius: 999px; padding: 0.1rem 0.45rem; font-weight: 750; }
+
+    .main { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100vh; min-width: 0; overflow: hidden; position: relative; }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .toolbar-left, .toolbar-right { display: flex; align-items: center; flex-wrap: nowrap; gap: 0.5rem; min-width: 0; }
+    .toolbar-left { flex: 1 1 auto; overflow-x: auto; padding-bottom: 0.1rem; }
+    .toolbar-left::-webkit-scrollbar { display: none; }
+    .toolbar-right { flex: 0 1 auto; justify-content: flex-end; max-width: 54%; }
+    .toolbar-left > *, .toolbar-right > * { flex: 0 0 auto; }
+    .status { color: var(--muted); font-size: 0.85rem; max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #statusText { max-width: 12rem; }
+    .status.dirty { color: var(--yellow); }
+    .status.ok { color: var(--green); }
+    .status.err { color: #fca5a5; }
+    .theme-picker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.32rem 0.55rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-solid);
+    }
+    .theme-dot {
+      width: 0.62rem;
+      height: 0.62rem;
+      border-radius: 999px;
+      background: var(--theme-dot);
+      box-shadow: 0 0 14px var(--theme-dot);
+      flex: 0 0 auto;
+    }
+    .theme-select {
+      width: auto;
+      min-width: 142px;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .info-drawer {
+      position: relative;
+      z-index: 40;
+    }
+    .info-tab {
+      white-space: nowrap;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+    }
+    .info-panel {
+      position: absolute;
+      top: calc(100% + 0.55rem);
+      right: 0;
+      width: min(390px, calc(100vw - 2rem));
+      max-height: calc(100vh - 5.5rem);
+      overflow: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem;
+      padding: 0.85rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface-solid);
+      color: var(--text);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 44px color-mix(in srgb, var(--text) 16%, transparent);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+    }
+    .info-drawer:hover .info-panel,
+    .info-drawer.open .info-panel {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .info-panel-title { grid-column: 1 / -1; margin: 0; font-size: 0.95rem; }
+    .field label { display: block; margin-bottom: 0.35rem; color: var(--muted); font-size: 0.78rem; }
+    .field.description, .field.slug { grid-column: 1 / -1; }
+    .rename-post-btn { grid-column: 1 / -1; width: 100%; }
+
+    .workspace { display: grid; grid-template-columns: 1fr 1fr; min-height: 0; overflow: hidden; }
+    .pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .pane + .pane { border-left: 1px solid var(--line); }
+    .pane-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--line);
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 750;
+      background: var(--surface-subtle);
+    }
+    .pane-title span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pane-title span:last-child { color: var(--muted); font-weight: 700; flex: 0 0 auto; }
+    .editor {
+      flex: 1;
+      resize: none;
+      border: 0;
+      border-radius: 0;
+      padding: 1rem;
+      min-height: 0;
+      overflow: auto;
+      line-height: 1.7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: color-mix(in srgb, var(--surface-solid) 72%, transparent);
+    }
+    .preview {
+      flex: 1;
+      overflow: auto;
+      padding: 1.7rem 2.25rem 4rem;
+      line-height: 1.85;
+      background: transparent;
+      color: var(--text);
+      font-size: 15px;
+    }
+    .preview > :first-child { margin-top: 0 !important; }
+    .preview h1, .preview h2, .preview h3, .preview h4, .preview h5, .preview h6 {
+      position: relative;
+      margin: 1.78em 0 0.78em;
+      line-height: 1.22;
+      font-weight: 850;
+      letter-spacing: -0.04em;
+      scroll-margin-top: 90px;
+    }
+    .preview h1::before,
+    .preview h2::before,
+    .preview h3::before,
+    .preview h4::before,
+    .preview h5::before,
+    .preview h6::before {
+      display: inline-flex;
+      margin-right: 0.5em;
+      color: var(--text-faint);
+      font-size: 0.62em;
+      font-weight: 900;
+      letter-spacing: 0;
+      opacity: 0.8;
+      vertical-align: 0.12em;
+    }
+    .preview h1 {
+      color: var(--h1-color);
+      font-size: 2.45em;
+      padding: 0.12em 0 0.46em;
+      border-bottom: 1px solid var(--border-strong);
+      text-shadow: 0 0 24px color-mix(in srgb, var(--h1-color) 24%, transparent);
+    }
+    .preview h1::before { content: "#"; }
+    .preview h1::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -1px;
+      width: min(180px, 45%);
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--h1-color), transparent);
+    }
+    .preview h2 {
+      color: var(--h2-color);
+      font-size: 1.82em;
+      padding-bottom: 0.34em;
+      border-bottom: 1px solid var(--line);
+    }
+    .preview h2::before { content: "##"; }
+    .preview h3 { color: var(--h3-color); font-size: 1.42em; }
+    .preview h3::before { content: "###"; }
+    .preview h4 { color: var(--h4-color); font-size: 1.18em; letter-spacing: -0.02em; }
+    .preview h4::before { content: "####"; }
+    .preview h5 { color: var(--h5-color); font-size: 1.05em; letter-spacing: 0.02em; text-transform: uppercase; }
+    .preview h5::before { content: "#####"; }
+    .preview h6 { color: var(--h6-color); font-size: 0.96em; letter-spacing: 0.06em; text-transform: uppercase; }
+    .preview h6::before { content: "######"; }
+    .preview p { margin: 1em 0; line-height: 1.92; }
+    .preview a { color: var(--primary-strong); text-decoration: none; font-weight: 750; border-bottom: 1px solid var(--primary-soft); }
+    .preview a:hover { border-bottom-color: var(--primary-strong); background: var(--primary-soft); border-radius: 4px; }
+    .preview strong { color: var(--strong-color); font-weight: 850; text-shadow: 0 0 18px color-mix(in srgb, var(--strong-color) 18%, transparent); }
+    .preview em { color: var(--em-color); font-style: italic; }
+    .preview mark { padding: 0.08em 0.28em; border-radius: 6px; background: var(--mark-bg); color: var(--mark-text); }
+    .preview code {
+      padding: 0.22em 0.48em;
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--code-text);
+      font-family: "SF Mono", Monaco, Consolas, monospace;
+      font-size: 0.88em;
+    }
+    .preview pre {
+      position: relative;
+      background: var(--code-bg);
+      border-radius: 0 0 16px 16px;
+      padding: 18px 20px 20px;
+      overflow-x: auto;
+      margin: 0;
+      border: none;
+      box-shadow: none;
+    }
+    .preview pre code {
+      display: block;
+      min-width: max-content;
+      background: transparent !important;
+      border: none;
+      padding: 0;
+      color: var(--code-text);
+      font-size: 13.5px;
+      line-height: 1.72;
+      tab-size: 2;
+      white-space: pre;
+    }
+    .preview .hljs { background: transparent !important; color: var(--code-text); }
+    .code-block {
+      position: relative;
+      margin: 1.55em 0;
+      border: 1px solid var(--code-border);
+      border-radius: 18px;
+      background: var(--code-bg);
+      box-shadow: 0 18px 42px var(--code-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+    }
+    .code-block::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: linear-gradient(180deg, var(--primary), var(--accent));
+      opacity: 0.92;
+      z-index: 2;
+    }
+    .code-toolbar {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 12px 0 18px;
+      background: linear-gradient(180deg, var(--code-toolbar), var(--code-bg));
+      border-bottom: 1px solid var(--code-border);
+    }
+    .code-lang {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .code-lang::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--theme-dot);
+      box-shadow: 0 0 14px var(--theme-dot);
+    }
+    .copy-code-btn {
+      min-height: 28px;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-solid);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .copy-code-btn:hover { color: var(--text); border-color: var(--border-strong); background: var(--surface-hover); }
+    .copy-code-btn.copied { color: #fff; border-color: transparent; background: linear-gradient(135deg, var(--green), var(--accent)); }
+    .preview blockquote {
+      position: relative;
+      border-left: 4px solid var(--primary);
+      padding: 14px 20px 14px 22px;
+      margin: 1.45em 0;
+      background: linear-gradient(90deg, var(--blockquote-bg), transparent 120%);
+      border-radius: 0 14px 14px 0;
+      color: var(--muted);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+    }
+    .preview blockquote::before {
+      content: "❝";
+      position: absolute;
+      top: 7px;
+      right: 14px;
+      color: var(--primary);
+      font-size: 28px;
+      opacity: 0.24;
+    }
+    .preview blockquote p { margin: 0.55em 0; }
+    .preview ul, .preview ol { margin: 1.15em 0; padding-left: 1.6em; }
+    .preview li { margin: 0.55em 0; line-height: 1.82; padding-left: 0.14em; }
+    .preview li::marker { color: var(--marker-color); font-weight: 900; }
+    .preview hr { height: 1px; border: none; margin: 2.15em 0; background: linear-gradient(90deg, transparent, var(--border-strong), var(--accent), var(--border-strong), transparent); opacity: 0.9; }
+    .preview table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 1.45em 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .preview th, .preview td { border-bottom: 1px solid var(--line); padding: 12px 14px; text-align: left; }
+    .preview th { background: var(--surface-subtle); font-weight: 800; }
+    .preview tr:nth-child(even) { background: var(--table-alt); }
+    .preview tr:last-child td { border-bottom: none; }
+    .preview img { max-width: 100%; border-radius: 14px; box-shadow: var(--shadow-soft); }
+
+    .ops-drawer {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 30;
+      width: min(760px, calc(100vw - 340px - 2rem));
+      pointer-events: auto;
+    }
+    .ops-toggle {
+      display: block;
+      margin-left: auto;
+      margin-bottom: 0.45rem;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.34);
+      pointer-events: auto;
+    }
+    .bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: max-height 0.22s ease, opacity 0.18s ease, transform 0.18s ease;
+      pointer-events: auto;
+    }
+    .ops-drawer:hover .bottom,
+    .ops-drawer.open .bottom,
+    .ops-drawer:focus-within .bottom {
+      max-height: 360px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .box { border: 1px solid var(--line); border-radius: 12px; padding: 0.65rem; background: var(--surface-solid); color: var(--text); backdrop-filter: blur(18px); min-width: 0; box-shadow: 0 18px 44px color-mix(in srgb, var(--text) 16%, transparent); }
+    .box h2 { font-size: 0.9rem; margin: 0 0 0.45rem; color: var(--text); }
+    .box-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.45rem; }
+    .box-actions button, .git-row button { padding: 0.42rem 0.62rem; }
+    .log {
+      height: 108px;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--text);
+      font-size: 0.74rem;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.55rem;
+    }
+    .git-row { display: grid; grid-template-columns: 1fr auto; gap: 0.4rem; margin-bottom: 0.45rem; }
+
+    body.preview-only .workspace { grid-template-columns: 1fr; }
+    body.preview-only .pane.editor-pane { display: none; }
+    body.edit-only .workspace { grid-template-columns: 1fr; }
+    body.edit-only .pane.preview-pane { display: none; }
+
+    @media (max-width: 1100px) {
+      body { overflow: auto; }
+      .app { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow: visible; }
+      .sidebar { height: 42vh; border-right: 0; border-bottom: 1px solid var(--line); }
+      .main { height: 100vh; }
+      .info-panel { right: 0; width: min(390px, calc(100vw - 2rem)); }
+      .workspace, .bottom { grid-template-columns: 1fr; }
+      .ops-drawer { width: calc(100vw - 2rem); left: 1rem; right: 1rem; }
+      .pane + .pane { border-left: 0; border-top: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>本地写作助手</h1>
+        <p>只读写 <code>src/content/blog</code>，不会生成线上编辑入口。</p>
+      </div>
+      <div class="side-actions">
+        <button class="primary" id="newBtn">新建文章</button>
+        <button id="refreshBtn">刷新列表</button>
+      </div>
+      <input class="search" id="searchInput" placeholder="搜索标题、路径、标签">
+      <section class="date-filter-panel" aria-label="按日期筛选文章">
+        <div class="filter-group">
+          <div class="filter-title">
+            <span>年份</span>
+            <button class="filter-reset" id="filterReset" type="button" hidden>清除</button>
+          </div>
+          <div class="filter-list" id="yearFilters"></div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-title"><span>月份</span></div>
+          <div class="filter-list" id="monthFilters"></div>
+        </div>
+      </section>
+      <p class="list-hint">文章列表固定在左侧，可在列表内独立滚动。</p>
+      <div class="post-list" id="postList"></div>
+    </aside>
+
+    <main class="main">
+      <header class="toolbar">
+        <div class="toolbar-left">
+          <button id="saveBtn" class="primary">保存</button>
+          <button id="saveAsBtn">另存为新文章</button>
+          <button id="deleteBtn" class="danger">删除文章</button>
+          <button id="syncScrollBtn">联动滚动：开</button>
+          <button id="splitBtn">分栏</button>
+          <button id="editBtn">仅编辑</button>
+          <button id="previewBtn">仅预览</button>
+        </div>
+        <div class="toolbar-right">
+          <label class="theme-picker" aria-label="编辑器主题">
+            <span class="theme-dot" id="themeDot"></span>
+            <select class="theme-select" id="themeSelect" title="选择主题">
+              <option value="light">Light · 清爽亮色</option>
+              <option value="github-dark">GitHub Dark</option>
+              <option value="dracula">Dracula 紫夜</option>
+            </select>
+          </label>
+          <div class="info-drawer" id="infoDrawer">
+            <button class="info-tab primary" id="infoToggle" type="button">文章基础信息</button>
+            <section class="info-panel" aria-label="文章基础信息">
+              <h2 class="info-panel-title">文章基础信息</h2>
+              <div class="field">
+                <label for="titleInput">标题 title</label>
+                <input id="titleInput" placeholder="文章标题">
+              </div>
+              <div class="field">
+                <label for="pubDateInput">发布日期 pubDate</label>
+                <input id="pubDateInput" type="date">
+              </div>
+              <div class="field">
+                <label for="updatedDateInput">更新日期 updatedDate</label>
+                <input id="updatedDateInput" type="date">
+              </div>
+              <div class="field">
+                <label for="tagsInput">标签 tags</label>
+                <input id="tagsInput" placeholder="Astro, Markdown">
+              </div>
+              <div class="field description">
+                <label for="descriptionInput">简介 description</label>
+                <input id="descriptionInput" placeholder="用于首页和列表页展示的摘要">
+              </div>
+              <div class="field slug">
+                <label for="slugInput">新文章文件名 slug（留空则用标题）</label>
+                <input id="slugInput" placeholder="my-new-post">
+              </div>
+              <button class="primary rename-post-btn" id="renamePostBtn" type="button">按标题/slug 重命名文件</button>
+            </section>
+          </div>
+          <span class="status" id="autoSaveStatus">自动保存待命</span>
+          <span class="status" id="statusText">准备就绪</span>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <div class="pane editor-pane">
+          <div class="pane-title">
+            <span id="currentPath">未保存的新文章</span>
+            <span id="stats">0 字 / 1 行</span>
+          </div>
+          <textarea id="editor" class="editor" placeholder="# 开始写作\n\n支持 Markdown、代码块、表格、引用。可直接粘贴图片，图片会保存到 public/images/YYYY/MM。"></textarea>
+        </div>
+        <div class="pane preview-pane">
+          <div class="pane-title">
+            <span>实时预览</span>
+            <span>以线上 Markdown 效果为参考</span>
+          </div>
+          <article class="preview" id="preview"></article>
+        </div>
+      </section>
+
+      <div class="ops-drawer" id="opsDrawer">
+        <button class="ops-toggle primary" id="opsToggle" type="button">构建 / Git</button>
+        <section class="bottom" aria-label="构建与 Git 操作面板">
+          <div class="box">
+            <h2>构建与预览</h2>
+            <div class="box-actions">
+              <button id="buildBtn">构建</button>
+              <button id="startPreviewBtn">启动预览</button>
+              <button class="success" id="buildPreviewBtn">构建并预览</button>
+              <a id="previewLink" href="http://127.0.0.1:4321" target="_blank" rel="noreferrer"><button type="button">打开博客</button></a>
+            </div>
+            <div class="log" id="buildLog">构建日志会显示在这里。</div>
+          </div>
+          <div class="box">
+            <h2>Git 发布</h2>
+            <div class="git-row">
+              <input id="commitInput" placeholder="提交信息，例如：post: add new article">
+              <button class="success" id="commitPushBtn">提交并推送</button>
+            </div>
+            <div class="box-actions">
+              <button id="gitStatusBtn">检查改动</button>
+            </div>
+            <div class="log" id="gitLog">先检查改动，确认后再提交并推送。</div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const AUTO_SAVE_DELAY = 1800;
+    const state = {
+      posts: [],
+      currentPath: '',
+      dirty: false,
+      autoSaveTimer: null,
+      autoSaving: false,
+      syncScrollEnabled: true,
+      syncingScroll: false,
+      activeFilterType: null,
+      dateFilters: {
+        year: new Set(),
+        month: new Set(),
+      },
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const postList = $('postList');
+    const editor = $('editor');
+    const preview = $('preview');
+    const statusText = $('statusText');
+    const autoSaveStatus = $('autoSaveStatus');
+    const themeSelect = $('themeSelect');
+    const themes = {
+      light: { label: 'Light · 清爽亮色', highlight: 'hljs-github-light' },
+      'github-dark': { label: 'GitHub Dark', highlight: 'hljs-github-dark' },
+      dracula: { label: 'Dracula 紫夜', highlight: 'hljs-dracula' },
+    };
+    const fields = {
+      title: $('titleInput'),
+      description: $('descriptionInput'),
+      pubDate: $('pubDateInput'),
+      updatedDate: $('updatedDateInput'),
+      tags: $('tagsInput'),
+      slug: $('slugInput'),
+    };
+
+    marked.setOptions({
+      highlight(code, lang) {
+        if (lang && hljs.getLanguage(lang)) return hljs.highlight(code, { language: lang }).value;
+        return hljs.highlightAuto(code).value;
+      },
+      breaks: false,
+      gfm: true,
+    });
+
+    function today() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function setTheme(theme) {
+      const selectedTheme = themes[theme] ? theme : 'light';
+      document.body.dataset.theme = selectedTheme;
+      themeSelect.value = selectedTheme;
+      localStorage.setItem('blog-editor-theme', selectedTheme);
+
+      Object.values(themes).forEach(({ highlight }) => {
+        const link = document.getElementById(highlight);
+        if (link) link.disabled = true;
+      });
+      const activeHighlight = document.getElementById(themes[selectedTheme].highlight);
+      if (activeHighlight) activeHighlight.disabled = false;
+      renderPreview();
+    }
+
+    function setStatus(message, type = '') {
+      statusText.textContent = message;
+      statusText.className = `status ${type}`;
+    }
+
+    function setDirty(value) {
+      state.dirty = value;
+      setStatus(value ? '有未保存改动' : '已保存', value ? 'dirty' : 'ok');
+      if (!value) updateAutoSaveStatus('自动保存完成', 'ok');
+      updateDeleteButton();
+    }
+
+    function updateAutoSaveStatus(message, type = '') {
+      autoSaveStatus.textContent = message;
+      autoSaveStatus.className = `status ${type}`;
+    }
+
+    function markChanged() {
+      setDirty(true);
+      scheduleAutoSave();
+    }
+
+    function hasAutoSaveContent() {
+      return Boolean(
+        state.currentPath
+        || editor.value.trim()
+        || fields.title.value.trim()
+        || fields.description.value.trim()
+        || fields.tags.value.trim()
+        || fields.slug.value.trim()
+      );
+    }
+
+    function updateDeleteButton() {
+      $('deleteBtn').disabled = !state.currentPath;
+    }
+
+    function getMeta() {
+      return {
+        title: fields.title.value.trim() || '未命名文章',
+        description: fields.description.value.trim(),
+        pubDate: fields.pubDate.value || today(),
+        updatedDate: fields.updatedDate.value || '',
+        tags: fields.tags.value.split(',').map((tag) => tag.trim()).filter(Boolean),
+      };
+    }
+
+    function setMeta(meta = {}) {
+      fields.title.value = meta.title || '';
+      fields.description.value = meta.description || '';
+      fields.pubDate.value = (meta.pubDate || today()).slice(0, 10);
+      fields.updatedDate.value = meta.updatedDate ? meta.updatedDate.slice(0, 10) : '';
+      fields.tags.value = Array.isArray(meta.tags) ? meta.tags.join(', ') : '';
+      fields.slug.value = '';
+    }
+
+    function renderPreview() {
+      preview.innerHTML = marked.parse(editor.value || '');
+      preview.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+      enhanceCodeBlocks();
+      const lines = editor.value ? editor.value.split(/\r\n|\r|\n/).length : 1;
+      $('stats').textContent = `${editor.value.length} 字 / ${lines} 行`;
+      if (state.syncScrollEnabled) syncScroll(editor, preview);
+    }
+
+    function getCodeLanguage(codeElement) {
+      const className = codeElement.className || '';
+      const matched = className.match(/language-([\w-]+)/) || className.match(/lang-([\w-]+)/);
+      return matched ? matched[1] : 'text';
+    }
+
+    function enhanceCodeBlocks() {
+      preview.querySelectorAll('pre').forEach((pre) => {
+        if (pre.parentElement?.classList.contains('code-block')) return;
+        const code = pre.querySelector('code');
+        if (!code) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block';
+        const toolbar = document.createElement('div');
+        toolbar.className = 'code-toolbar';
+        const lang = document.createElement('span');
+        lang.className = 'code-lang';
+        lang.textContent = getCodeLanguage(code);
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-code-btn';
+        copyButton.type = 'button';
+        copyButton.textContent = '复制';
+        copyButton.addEventListener('click', async () => {
+          await navigator.clipboard.writeText(code.textContent || '');
+          copyButton.textContent = '已复制';
+          copyButton.classList.add('copied');
+          setTimeout(() => {
+            copyButton.textContent = '复制';
+            copyButton.classList.remove('copied');
+          }, 1200);
+        });
+
+        toolbar.append(lang, copyButton);
+        pre.replaceWith(wrapper);
+        wrapper.append(toolbar, pre);
+      });
+    }
+
+    function syncScroll(source, target) {
+      if (!state.syncScrollEnabled || state.syncingScroll) return;
+      const sourceMax = source.scrollHeight - source.clientHeight;
+      const targetMax = target.scrollHeight - target.clientHeight;
+      if (sourceMax <= 0 || targetMax <= 0) return;
+      state.syncingScroll = true;
+      target.scrollTop = (source.scrollTop / sourceMax) * targetMax;
+      requestAnimationFrame(() => {
+        state.syncingScroll = false;
+      });
+    }
+
+    function toggleSyncScroll() {
+      state.syncScrollEnabled = !state.syncScrollEnabled;
+      $('syncScrollBtn').textContent = `联动滚动：${state.syncScrollEnabled ? '开' : '关'}`;
+    }
+
+    function closeInfoDrawer() {
+      $('infoDrawer').classList.remove('open');
+    }
+
+    function getPostDateParts(post) {
+      const date = new Date(post.meta.pubDate || '');
+      if (Number.isNaN(date.valueOf())) return { year: '', month: '' };
+      const year = String(date.getFullYear());
+      const month = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      return { year, month };
+    }
+
+    function buildDateFilters() {
+      const yearMap = new Map();
+      const monthMap = new Map();
+
+      for (const post of state.posts) {
+        const { year, month } = getPostDateParts(post);
+        if (year) yearMap.set(year, (yearMap.get(year) || 0) + 1);
+        if (month) monthMap.set(month, (monthMap.get(month) || 0) + 1);
+      }
+
+      renderDateFilterGroup('year', [...yearMap.entries()].sort((a, b) => Number(b[0]) - Number(a[0])), $('yearFilters'));
+      renderDateFilterGroup('month', [...monthMap.entries()].sort((a, b) => b[0].localeCompare(a[0])), $('monthFilters'));
+      updateDateFilterReset();
+    }
+
+    function renderDateFilterGroup(type, entries, container) {
+      container.innerHTML = '';
+      for (const [value, count] of entries) {
+        const button = document.createElement('button');
+        button.className = `filter-chip ${state.dateFilters[type].has(value) ? 'active' : ''}`;
+        button.type = 'button';
+        button.dataset.filter = type;
+        button.dataset.value = value;
+        button.innerHTML = `<span></span><span class="filter-count"></span>`;
+        button.querySelector('span:first-child').textContent = value;
+        button.querySelector('.filter-count').textContent = count;
+        button.addEventListener('click', () => toggleDateFilter(type, value));
+        container.appendChild(button);
+      }
+    }
+
+    function toggleDateFilter(type, value) {
+      if (state.activeFilterType && state.activeFilterType !== type) {
+        state.dateFilters[state.activeFilterType].clear();
+      }
+      const bucket = state.dateFilters[type];
+      if (bucket.has(value)) {
+        bucket.delete(value);
+        if (bucket.size === 0) state.activeFilterType = null;
+      } else {
+        bucket.add(value);
+        state.activeFilterType = type;
+      }
+      buildDateFilters();
+      renderPosts();
+    }
+
+    function resetDateFilters() {
+      state.dateFilters.year.clear();
+      state.dateFilters.month.clear();
+      state.activeFilterType = null;
+      buildDateFilters();
+      renderPosts();
+    }
+
+    function updateDateFilterReset() {
+      $('filterReset').hidden = !state.activeFilterType;
+    }
+
+    function renderPosts() {
+      const keyword = $('searchInput').value.trim().toLowerCase();
+      postList.innerHTML = '';
+      const filtered = state.posts.filter((post) => {
+        const haystack = [post.relativePath, post.meta.title, post.meta.description, ...(post.meta.tags || [])]
+          .join(' ')
+          .toLowerCase();
+        const { year, month } = getPostDateParts(post);
+        const matchYear = state.dateFilters.year.size === 0 || state.dateFilters.year.has(year);
+        const matchMonth = state.dateFilters.month.size === 0 || state.dateFilters.month.has(month);
+        return (!keyword || haystack.includes(keyword)) && matchYear && matchMonth;
+      });
+
+      if (filtered.length === 0) {
+        postList.innerHTML = '<div class="post-meta">没有符合筛选条件的文章</div>';
+        return;
+      }
+
+      for (const post of filtered) {
+        const item = document.createElement('div');
+        item.className = `post-item ${post.relativePath === state.currentPath ? 'active' : ''}`;
+        item.innerHTML = `
+          <div class="post-title"></div>
+          <div class="post-meta"></div>
+          <div class="tag-row"></div>
+        `;
+        item.querySelector('.post-title').textContent = post.meta.title || post.relativePath;
+        item.querySelector('.post-meta').textContent = `${post.meta.pubDate || ''} · ${post.relativePath}`;
+        const tagRow = item.querySelector('.tag-row');
+        for (const tag of post.meta.tags || []) {
+          const span = document.createElement('span');
+          span.className = 'tag';
+          span.textContent = tag;
+          tagRow.appendChild(span);
+        }
+        item.addEventListener('click', () => loadPost(post.relativePath));
+        postList.appendChild(item);
+      }
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options,
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '请求失败');
+      return data;
+    }
+
+    async function loadPosts() {
+      const data = await api('/api/posts');
+      state.posts = data.posts;
+      buildDateFilters();
+      renderPosts();
+    }
+
+    async function loadPost(relativePath) {
+      if (state.dirty && !confirm('当前文章尚未保存，确定要切换吗？')) return;
+      const data = await api(`/api/post?path=${encodeURIComponent(relativePath)}`);
+      state.currentPath = data.post.relativePath;
+      setMeta(data.post.meta);
+      editor.value = data.post.body || '';
+      $('currentPath').textContent = state.currentPath;
+      renderPreview();
+      setDirty(false);
+      updateDeleteButton();
+      renderPosts();
+    }
+
+    function newPost() {
+      if (state.dirty && !confirm('当前文章尚未保存，确定要新建吗？')) return;
+      state.currentPath = '';
+      setMeta({ pubDate: today(), tags: [] });
+      editor.value = '';
+      $('currentPath').textContent = '未保存的新文章';
+      renderPreview();
+      setDirty(false);
+      updateAutoSaveStatus('输入内容后自动保存', '');
+      updateDeleteButton();
+      renderPosts();
+    }
+
+    async function savePost(saveAsNew = false, options = {}) {
+      const payload = {
+        relativePath: state.currentPath,
+        saveAsNew,
+        slug: fields.slug.value.trim(),
+        meta: getMeta(),
+        body: editor.value,
+      };
+      const data = await api('/api/post', { method: 'POST', body: JSON.stringify(payload) });
+      state.currentPath = data.post.relativePath;
+      $('currentPath').textContent = state.currentPath;
+      await loadPosts();
+      setDirty(false);
+      updateDeleteButton();
+      if (!options.silent) setStatus('已保存', 'ok');
+    }
+
+    function scheduleAutoSave() {
+      clearTimeout(state.autoSaveTimer);
+      if (!hasAutoSaveContent()) {
+        updateAutoSaveStatus('输入内容后自动保存', '');
+        return;
+      }
+      updateAutoSaveStatus('等待自动保存...', 'dirty');
+      state.autoSaveTimer = setTimeout(() => {
+        autoSave().catch((error) => updateAutoSaveStatus(`自动保存失败：${error.message}`, 'err'));
+      }, AUTO_SAVE_DELAY);
+    }
+
+    async function autoSave() {
+      if (!state.dirty || state.autoSaving || !hasAutoSaveContent()) return;
+      state.autoSaving = true;
+      updateAutoSaveStatus('正在自动保存...', 'dirty');
+      try {
+        await savePost(false, { silent: true });
+        updateAutoSaveStatus(`已自动保存 ${new Date().toLocaleTimeString()}`, 'ok');
+      } finally {
+        state.autoSaving = false;
+      }
+    }
+
+    async function renameCurrentPost() {
+      if (!state.currentPath) await savePost(false, { silent: true });
+      if (!state.currentPath) {
+        alert('请先保存文章，再重命名文件。');
+        return;
+      }
+
+      const oldPath = state.currentPath;
+      const ok = confirm(`将根据当前标题或 slug 重命名文章文件。\n\n当前：${oldPath}`);
+      if (!ok) return;
+
+      const data = await api('/api/post/rename', {
+        method: 'POST',
+        body: JSON.stringify({
+          relativePath: state.currentPath,
+          slug: fields.slug.value.trim(),
+          meta: getMeta(),
+          body: editor.value,
+        }),
+      });
+      state.currentPath = data.post.relativePath;
+      $('currentPath').textContent = state.currentPath;
+      await loadPosts();
+      setDirty(false);
+      updateDeleteButton();
+      closeInfoDrawer();
+      setStatus('已重命名', 'ok');
+    }
+
+    async function deleteCurrentPost() {
+      if (!state.currentPath) {
+        alert('当前是未保存的新文章，没有可删除的文件。');
+        return;
+      }
+
+      const relativePath = state.currentPath;
+      const ok = confirm(`确定删除这篇文章吗？\n\n${relativePath}\n\n该操作会删除本地 Markdown 文件。`);
+      if (!ok) return;
+
+      await api(`/api/post?path=${encodeURIComponent(relativePath)}`, { method: 'DELETE' });
+      state.currentPath = '';
+      setMeta({ pubDate: today(), tags: [] });
+      editor.value = '';
+      $('currentPath').textContent = '未保存的新文章';
+      renderPreview();
+      await loadPosts();
+      setDirty(false);
+      updateDeleteButton();
+      setStatus(`已删除：${relativePath}`, 'ok');
+    }
+
+    async function uploadImage(file) {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const data = await api('/api/image', {
+        method: 'POST',
+        body: JSON.stringify({ name: file.name, dataUrl }),
+      });
+      insertAtCursor(`![${file.name}](${data.url})`);
+    }
+
+    function insertAtCursor(text) {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.value = `${editor.value.slice(0, start)}${text}${editor.value.slice(end)}`;
+      editor.selectionStart = editor.selectionEnd = start + text.length;
+      editor.focus();
+      renderPreview();
+      markChanged();
+    }
+
+    async function runBuild() {
+      $('buildLog').textContent = '正在构建...\n';
+      const result = await api('/api/build', { method: 'POST', body: '{}' });
+      $('buildLog').textContent = `${result.stdout || ''}${result.stderr || ''}` || '构建完成。';
+      if (!result.ok) throw new Error('构建失败，请查看日志');
+      return result;
+    }
+
+    async function startPreview() {
+      const data = await api('/api/preview/start', { method: 'POST', body: '{}' });
+      $('previewLink').href = data.url;
+      $('buildLog').textContent += `\n预览地址：${data.url}\n`;
+      window.open(data.url, '_blank', 'noreferrer');
+      setTimeout(refreshPreviewLogs, 800);
+    }
+
+    async function refreshPreviewLogs() {
+      const data = await api('/api/preview/logs');
+      if (data.logs) $('buildLog').textContent += `\n${data.logs}`;
+    }
+
+    async function gitStatus() {
+      const result = await api('/api/git/status');
+      $('gitLog').textContent = result.stdout.trim() || '工作区干净，没有改动。';
+    }
+
+    async function commitAndPush() {
+      const message = $('commitInput').value.trim();
+      if (!message) {
+        alert('请先填写提交信息');
+        return;
+      }
+      const status = await api('/api/git/status');
+      if (!status.stdout.trim()) {
+        $('gitLog').textContent = '没有需要提交的改动。';
+        return;
+      }
+      const ok = confirm(`即将提交并推送以下改动：\n\n${status.stdout}\n\n提交信息：${message}`);
+      if (!ok) return;
+      $('gitLog').textContent = '正在提交并推送...\n';
+      const result = await api('/api/git/commit-push', {
+        method: 'POST',
+        body: JSON.stringify({ message, push: true }),
+      });
+      $('gitLog').textContent = `${result.stdout || ''}${result.stderr || ''}`;
+      if (!result.ok) alert('提交或推送失败，请查看日志');
+      await loadPosts();
+    }
+
+    editor.addEventListener('input', () => { renderPreview(); markChanged(); });
+    editor.addEventListener('scroll', () => syncScroll(editor, preview));
+    preview.addEventListener('scroll', () => syncScroll(preview, editor));
+    editor.addEventListener('paste', async (event) => {
+      const files = Array.from(event.clipboardData?.files || []).filter((file) => file.type.startsWith('image/'));
+      if (files.length === 0) return;
+      event.preventDefault();
+      for (const file of files) await uploadImage(file);
+    });
+    for (const input of Object.values(fields)) input.addEventListener('input', markChanged);
+
+    themeSelect.addEventListener('change', (event) => setTheme(event.target.value));
+    $('newBtn').addEventListener('click', newPost);
+    $('refreshBtn').addEventListener('click', loadPosts);
+    $('searchInput').addEventListener('input', renderPosts);
+    $('filterReset').addEventListener('click', resetDateFilters);
+    $('saveBtn').addEventListener('click', () => savePost(false).catch((error) => alert(error.message)));
+    $('saveAsBtn').addEventListener('click', () => savePost(true).catch((error) => alert(error.message)));
+    $('renamePostBtn').addEventListener('click', () => renameCurrentPost().catch((error) => alert(error.message)));
+    $('deleteBtn').addEventListener('click', () => deleteCurrentPost().catch((error) => alert(error.message)));
+    $('syncScrollBtn').addEventListener('click', toggleSyncScroll);
+    $('infoToggle').addEventListener('click', (event) => {
+      event.stopPropagation();
+      $('infoDrawer').classList.toggle('open');
+    });
+    $('infoDrawer').addEventListener('click', (event) => event.stopPropagation());
+    $('opsToggle').addEventListener('click', () => $('opsDrawer').classList.toggle('open'));
+    $('splitBtn').addEventListener('click', () => { document.body.className = ''; });
+    $('editBtn').addEventListener('click', () => { document.body.className = 'edit-only'; });
+    $('previewBtn').addEventListener('click', () => { document.body.className = 'preview-only'; });
+    $('buildBtn').addEventListener('click', () => runBuild().catch((error) => alert(error.message)));
+    $('startPreviewBtn').addEventListener('click', () => startPreview().catch((error) => alert(error.message)));
+    $('buildPreviewBtn').addEventListener('click', async () => {
+      try {
+        await runBuild();
+        await startPreview();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+    $('gitStatusBtn').addEventListener('click', () => gitStatus().catch((error) => alert(error.message)));
+    $('commitPushBtn').addEventListener('click', () => commitAndPush().catch((error) => alert(error.message)));
+
+    document.addEventListener('click', closeInfoDrawer);
+
+    window.addEventListener('keydown', (event) => {
+      const key = event.key.toLowerCase();
+      if (event.key === 'Escape') closeInfoDrawer();
+      if ((event.metaKey || event.ctrlKey) && key === 's') {
+        event.preventDefault();
+        savePost(false).catch((error) => alert(error.message));
+      }
+      if ((event.metaKey || event.ctrlKey) && key === 'n') {
+        event.preventDefault();
+        newPost();
+      }
+    });
+    window.addEventListener('beforeunload', (event) => {
+      if (!state.dirty) return;
+      event.preventDefault();
+      event.returnValue = '';
+    });
+
+    setTheme(localStorage.getItem('blog-editor-theme') || 'light');
+    newPost();
+    loadPosts().catch((error) => setStatus(error.message, 'err'));
+  </script>
+</body>
+</html>
