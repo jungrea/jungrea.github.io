@@ -91,8 +91,25 @@ test('single-pane edit and preview modes use full-width workspace', () => {
   assert.doesNotMatch(html, /body\.edit-only \.workspace \{ grid-template-columns: 1fr 0; \}/);
 });
 
-test('split view supports linked scrolling between editor and preview', () => {
-  assert.match(html, /id="syncScrollBtn"/);
+test('editor supports inserting uploaded or existing images', () => {
+  assert.match(html, /id="imageToggle"/);
+  assert.match(html, /id="imagePanel"/);
+  assert.match(html, /id="imageUploadBtn"/);
+  assert.match(html, /id="imageGrid"/);
+  assert.match(html, /function loadImages/);
+  assert.match(html, /function insertImageMarkdown/);
+  assert.match(html, /\/api\/images/);
+  assert.match(html, /\/api\/image/);
+});
+
+test('image picker keeps search above grid and shows newest images first', () => {
+  assert.match(html, /\.image-panel \{[\s\S]*grid-template-rows: auto auto auto minmax\(0, 1fr\)/);
+  assert.match(html, /\.image-grid \{[\s\S]*align-content: start/);
+});
+
+test('split view keeps linked scrolling always enabled without toolbar toggle', () => {
+  assert.doesNotMatch(html, /id="syncScrollBtn"/);
   assert.match(html, /function syncScroll/);
-  assert.match(html, /syncScrollEnabled/);
+  assert.match(html, /syncScrollEnabled: true/);
+  assert.doesNotMatch(html, /function toggleSyncScroll/);
 });

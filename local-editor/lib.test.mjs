@@ -7,6 +7,7 @@ import {
   buildMarkdown,
   createPostRelativePath,
   deletePost,
+  listImageFiles,
   parseMarkdown,
   safePostPath,
   sortPostsNewestFirst,
@@ -82,4 +83,26 @@ test('deletePost removes only markdown files inside blog content root', async ()
   await assert.rejects(() => fs.access(postPath));
   await assert.rejects(() => deletePost(root, '../secret.md'), /非法文章路径/);
   await assert.rejects(() => deletePost(root, '2026/06/post.txt'), /只支持 Markdown/);
+});
+
+test('listImageFiles returns existing public images with markdown urls', async () => {
+  const publicRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'blog-editor-public-'));
+  await fs.mkdir(path.join(publicRoot, 'images/2026/06'), { recursive: true });
+  await fs.mkdir(path.join(publicRoot, 'images/misc'), { recursive: true });
+  const oldImage = path.join(publicRoot, 'images/2026/06/cover.png');
+  const newImage = path.join(publicRoot, 'images/misc/photo.JPG');
+  await fs.writeFile(oldImage, 'x');
+  await fs.writeFile(newImage, 'x');
+  await fs.writeFile(path.join(publicRoot, 'images/misc/readme.txt'), 'x');
+  await fs.utimes(oldImage, new Date('2026-06-01T00:00:00'), new Date('2026-06-01T00:00:00'));
+  await fs.utimes(newImage, new Date('2026-06-02T00:00:00'), new Date('2026-06-02T00:00:00'));
+
+  const images = await listImageFiles(publicRoot);
+
+  assert.deepEqual(images.map((image) => image.url), [
+    '/images/misc/photo.JPG',
+    '/images/2026/06/cover.png',
+  ]);
+  assert.equal(images[0].mtimeMs > images[1].mtimeMs, true);
+  assert.equal(images.find((image) => image.name === 'cover.png').month, '2026-06');
 });

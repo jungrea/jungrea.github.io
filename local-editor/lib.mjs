@@ -190,6 +190,45 @@ export async function deletePost(contentRoot, relativePath) {
   };
 }
 
+export async function listImageFiles(publicRoot) {
+  const imageRoot = path.join(publicRoot, 'images');
+  const result = [];
+
+  async function walk(dir) {
+    let entries = [];
+    try {
+      entries = await fs.readdir(dir, { withFileTypes: true });
+    } catch (error) {
+      if (error?.code === 'ENOENT') return;
+      throw error;
+    }
+
+    for (const entry of entries) {
+      const absolute = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(absolute);
+      } else if (/\.(?:png|jpe?g|gif|webp|svg)$/i.test(entry.name)) {
+        const relativePath = path.relative(publicRoot, absolute).split(path.sep).join('/');
+        const parts = relativePath.split('/');
+        const year = /^\d{4}$/.test(parts[1] || '') ? parts[1] : '';
+        const month = year && /^\d{2}$/.test(parts[2] || '') ? `${year}-${parts[2]}` : '';
+        const stat = await fs.stat(absolute);
+        result.push({
+          name: entry.name,
+          relativePath,
+          url: `/${relativePath}`,
+          year,
+          month,
+          mtimeMs: stat.mtimeMs,
+        });
+      }
+    }
+  }
+
+  await walk(imageRoot);
+  return result.sort((a, b) => b.mtimeMs - a.mtimeMs || b.relativePath.localeCompare(a.relativePath));
+}
+
 export async function listPosts(contentRoot) {
   const files = await listMarkdownFiles(contentRoot);
   const posts = await Promise.all(files.map(async (file) => {

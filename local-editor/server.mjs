@@ -7,6 +7,7 @@ import {
   buildMarkdown,
   createPostRelativePath,
   deletePost,
+  listImageFiles,
   listPosts,
   readPost,
   safePostPath,
@@ -166,7 +167,7 @@ async function saveImage(payload) {
   await fs.mkdir(path.dirname(absolutePath), { recursive: true });
   await fs.writeFile(absolutePath, Buffer.from(match[3], 'base64'));
 
-  return { url: `/${relativePath}` };
+  return { name: fileName, relativePath, url: `/${relativePath}` };
 }
 
 function startPreview() {
@@ -219,6 +220,10 @@ async function handleApi(req, res, url) {
     const relativePath = url.searchParams.get('path');
     if (!relativePath) return json(res, 400, { error: '缺少文章路径' });
     return json(res, 200, { post: await deletePost(contentRoot, relativePath) });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/images') {
+    return json(res, 200, { images: await listImageFiles(publicRoot) });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/image') {
@@ -275,22 +280,36 @@ async function handleApi(req, res, url) {
   return json(res, 404, { error: '接口不存在' });
 }
 
-async function serveStatic(res, url) {
-  const requestPath = url.pathname === '/' ? '/index.html' : decodeURIComponent(url.pathname);
-  const absolutePath = path.resolve(editorRoot, `.${requestPath}`);
-  const rootWithSep = editorRoot.endsWith(path.sep) ? editorRoot : `${editorRoot}${path.sep}`;
+async function tryServeFromRoot(res, root, requestPath) {
+  const absolutePath = path.resolve(root, `.${requestPath}`);
+  const rootWithSep = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
 
-  if (absolutePath !== editorRoot && !absolutePath.startsWith(rootWithSep)) {
-    return text(res, 403, 'Forbidden');
+  if (absolutePath !== root && !absolutePath.startsWith(rootWithSep)) {
+    text(res, 403, 'Forbidden');
+    return true;
   }
 
   try {
     const file = await fs.readFile(absolutePath);
     res.writeHead(200, { 'Content-Type': getContentType(absolutePath) });
     res.end(file);
-  } catch {
-    text(res, 404, 'Not found');
+    return true;
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      text(res, 500, String(error?.message || error));
+      return true;
+    }
+    return false;
   }
+}
+
+async function serveStatic(res, url) {
+  const requestPath = url.pathname === '/' ? '/index.html' : decodeURIComponent(url.pathname);
+
+  if (await tryServeFromRoot(res, editorRoot, requestPath)) return;
+  if (await tryServeFromRoot(res, publicRoot, requestPath)) return;
+
+  text(res, 404, 'Not found');
 }
 
 const server = createServer(async (req, res) => {

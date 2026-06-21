@@ -48,6 +48,7 @@ npm run write
 
 - 网页式 Markdown 编辑、实时预览、自动保存与分栏联动滚动
 - 支持 Light、GitHub Dark、Dracula 三套写作/预览主题
+- 支持上传图片、选择已有图片，并在光标处插入 Markdown 图片引用
 - 读取、搜索、按年份/月筛选、保存、删除 `src/content/blog/` 下的文章
 - 新文章自动按 `YYYY/MM/slug.md` 保存，方便按年月管理
 - 粘贴图片并保存到 `public/images/YYYY/MM/`

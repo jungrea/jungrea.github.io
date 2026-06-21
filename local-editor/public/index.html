@@ -592,6 +592,33 @@
       padding: 0.55rem;
     }
     .git-row { display: grid; grid-template-columns: 1fr auto; gap: 0.4rem; margin-bottom: 0.45rem; }
+    .image-panel {
+      position: fixed;
+      inset: 5rem 1.25rem 1.25rem auto;
+      z-index: 45;
+      width: min(720px, calc(100vw - 2.5rem));
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      gap: 0.75rem;
+      padding: 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface-solid);
+      color: var(--text);
+      box-shadow: 0 24px 70px color-mix(in srgb, var(--text) 18%, transparent);
+    }
+    .image-panel.hidden { display: none; }
+    .image-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .image-panel-header h2 { margin: 0; font-size: 1rem; }
+    .image-panel-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .image-search { margin: 0; }
+    .image-grid { min-height: 0; overflow: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-content: start; gap: 0.7rem; padding-right: 0.2rem; }
+    .image-card { border: 1px solid var(--line); border-radius: 14px; padding: 0.55rem; background: var(--surface-subtle); cursor: pointer; text-align: left; }
+    .image-card:hover { border-color: var(--primary); background: var(--primary-soft); }
+    .image-card img { width: 100%; height: 96px; object-fit: cover; border-radius: 10px; background: var(--surface-solid); border: 1px solid var(--line); }
+    .image-name { margin-top: 0.45rem; font-size: 0.78rem; font-weight: 800; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .image-path { margin-top: 0.2rem; font-size: 0.68rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .image-empty { color: var(--muted); font-size: 0.85rem; padding: 1rem; border: 1px dashed var(--line); border-radius: 14px; }
 
     body.preview-only .workspace { grid-template-columns: 1fr; }
     body.preview-only .pane.editor-pane { display: none; }
@@ -645,7 +672,7 @@
           <button id="saveBtn" class="primary">保存</button>
           <button id="saveAsBtn">另存为新文章</button>
           <button id="deleteBtn" class="danger">删除文章</button>
-          <button id="syncScrollBtn">联动滚动：开</button>
+          <button id="imageToggle">插入图片</button>
           <button id="splitBtn">分栏</button>
           <button id="editBtn">仅编辑</button>
           <button id="previewBtn">仅预览</button>
@@ -712,6 +739,20 @@
         </div>
       </section>
 
+      <section class="image-panel hidden" id="imagePanel" aria-label="插入图片">
+        <div class="image-panel-header">
+          <h2>插入图片</h2>
+          <button id="imageCloseBtn" type="button">关闭</button>
+        </div>
+        <div class="image-panel-actions">
+          <button class="primary" id="imageUploadBtn" type="button">上传新图片</button>
+          <button id="imageRefreshBtn" type="button">刷新图片库</button>
+          <input id="imageFileInput" type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" multiple hidden>
+        </div>
+        <input class="image-search" id="imageSearchInput" placeholder="搜索已有图片名称或路径">
+        <div class="image-grid" id="imageGrid"></div>
+      </section>
+
       <div class="ops-drawer" id="opsDrawer">
         <button class="ops-toggle primary" id="opsToggle" type="button">构建 / Git</button>
         <section class="bottom" aria-label="构建与 Git 操作面板">
@@ -751,6 +792,7 @@
       autoSaving: false,
       syncScrollEnabled: true,
       syncingScroll: false,
+      images: [],
       activeFilterType: null,
       dateFilters: {
         year: new Set(),
@@ -921,11 +963,6 @@
       requestAnimationFrame(() => {
         state.syncingScroll = false;
       });
-    }
-
-    function toggleSyncScroll() {
-      state.syncScrollEnabled = !state.syncScrollEnabled;
-      $('syncScrollBtn').textContent = `联动滚动：${state.syncScrollEnabled ? '开' : '关'}`;
     }
 
     function closeInfoDrawer() {
@@ -1174,7 +1211,53 @@
       setStatus(`已删除：${relativePath}`, 'ok');
     }
 
-    async function uploadImage(file) {
+    async function loadImages() {
+      const data = await api('/api/images');
+      state.images = data.images || [];
+      renderImages();
+    }
+
+    function renderImages() {
+      const keyword = $('imageSearchInput').value.trim().toLowerCase();
+      const images = state.images.filter((image) => {
+        const haystack = `${image.name} ${image.relativePath} ${image.url}`.toLowerCase();
+        return !keyword || haystack.includes(keyword);
+      });
+      const grid = $('imageGrid');
+      grid.innerHTML = '';
+
+      if (images.length === 0) {
+        grid.innerHTML = '<div class="image-empty">暂无匹配图片。可以先上传新图片。</div>';
+        return;
+      }
+
+      for (const image of images) {
+        const card = document.createElement('button');
+        card.className = 'image-card';
+        card.type = 'button';
+        card.innerHTML = `
+          <img alt="" loading="lazy">
+          <div class="image-name"></div>
+          <div class="image-path"></div>
+        `;
+        card.querySelector('img').src = image.url;
+        card.querySelector('.image-name').textContent = image.name;
+        card.querySelector('.image-path').textContent = image.url;
+        card.addEventListener('click', () => insertImageMarkdown(image.url, image.name));
+        grid.appendChild(card);
+      }
+    }
+
+    function openImagePanel() {
+      $('imagePanel').classList.remove('hidden');
+      loadImages().catch((error) => setStatus(error.message, 'err'));
+    }
+
+    function closeImagePanel() {
+      $('imagePanel').classList.add('hidden');
+    }
+
+    async function uploadImage(file, options = {}) {
       const dataUrl = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
@@ -1185,7 +1268,16 @@
         method: 'POST',
         body: JSON.stringify({ name: file.name, dataUrl }),
       });
-      insertAtCursor(`![${file.name}](${data.url})`);
+      if (options.insert !== false) insertImageMarkdown(data.url, file.name);
+      await loadImages();
+      return data;
+    }
+
+    function insertImageMarkdown(url, name = 'image') {
+      const selectedText = editor.value.slice(editor.selectionStart, editor.selectionEnd).trim();
+      const alt = selectedText || name.replace(/\.[^.]+$/, '') || 'image';
+      insertAtCursor(`![${alt}](${url})`);
+      closeImagePanel();
     }
 
     function insertAtCursor(text) {
@@ -1267,7 +1359,16 @@
     $('saveAsBtn').addEventListener('click', () => savePost(true).catch((error) => alert(error.message)));
     $('renamePostBtn').addEventListener('click', () => renameCurrentPost().catch((error) => alert(error.message)));
     $('deleteBtn').addEventListener('click', () => deleteCurrentPost().catch((error) => alert(error.message)));
-    $('syncScrollBtn').addEventListener('click', toggleSyncScroll);
+    $('imageToggle').addEventListener('click', openImagePanel);
+    $('imageCloseBtn').addEventListener('click', closeImagePanel);
+    $('imageUploadBtn').addEventListener('click', () => $('imageFileInput').click());
+    $('imageRefreshBtn').addEventListener('click', () => loadImages().catch((error) => alert(error.message)));
+    $('imageSearchInput').addEventListener('input', renderImages);
+    $('imageFileInput').addEventListener('change', async (event) => {
+      const files = Array.from(event.target.files || []);
+      for (const file of files) await uploadImage(file, { insert: files.length === 1 });
+      event.target.value = '';
+    });
     $('infoToggle').addEventListener('click', (event) => {
       event.stopPropagation();
       $('infoDrawer').classList.toggle('open');
