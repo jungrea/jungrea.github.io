@@ -19,6 +19,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const contentRoot = path.join(projectRoot, 'src/content/blog');
 const publicRoot = path.join(projectRoot, 'public');
 const editorRoot = path.join(__dirname, 'public');
+const md2wxPath = path.join(__dirname, 'md2wx.html');
 const port = Number(process.env.LOCAL_EDITOR_PORT || 4310);
 const previewPort = Number(process.env.LOCAL_PREVIEW_PORT || 4321);
 
@@ -303,8 +304,48 @@ async function tryServeFromRoot(res, root, requestPath) {
   }
 }
 
+async function serveMd2wx(res) {
+  try {
+    const html = await fs.readFile(md2wxPath, 'utf8');
+    const bridge = `
+<style>
+  body.md2wx-embedded header { display: none !important; }
+  body.md2wx-embedded main { height: 100vh !important; grid-template-columns: 1fr !important; }
+  body.md2wx-embedded main > .pane:first-child { display: none !important; }
+  body.md2wx-embedded .pane + .pane { border-left: none !important; }
+  body.md2wx-embedded .pane-header { display: none !important; }
+  body.md2wx-embedded .preview-wrap { height: 100vh !important; padding: 24px !important; }
+</style>
+<script>
+  document.body.classList.add('md2wx-embedded');
+  if (typeof buildInlineHTML === 'function') {
+    render();
+  }
+  window.addEventListener('message', function(event) {
+    var data = event.data || {};
+    if (data.type === 'md2wx:setMarkdown') {
+      editor.value = data.markdown || '';
+      render();
+    }
+    if (data.type === 'md2wx:copy') {
+      copyToClipboard();
+    }
+  });
+  window.parent.postMessage({ type: 'md2wx:ready' }, '*');
+</script>`;
+    text(res, 200, html.replace('</body>', `${bridge}\n</body>`), 'text/html; charset=utf-8');
+  } catch (error) {
+    text(res, 500, `无法加载 md2wx.html：${String(error?.message || error)}`);
+  }
+}
+
 async function serveStatic(res, url) {
   const requestPath = url.pathname === '/' ? '/index.html' : decodeURIComponent(url.pathname);
+
+  if (requestPath === '/md2wx.html') {
+    await serveMd2wx(res);
+    return;
+  }
 
   if (await tryServeFromRoot(res, editorRoot, requestPath)) return;
   if (await tryServeFromRoot(res, publicRoot, requestPath)) return;

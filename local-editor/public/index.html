@@ -314,6 +314,7 @@
     .workspace { display: grid; grid-template-columns: 1fr 1fr; min-height: 0; overflow: hidden; }
     .pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
     .pane + .pane { border-left: 1px solid var(--line); }
+    .preview-pane { position: relative; }
     .pane-title {
       display: flex;
       align-items: center;
@@ -541,6 +542,51 @@
     .preview tr:nth-child(even) { background: var(--table-alt); }
     .preview tr:last-child td { border-bottom: none; }
     .preview img { max-width: 100%; border-radius: 14px; box-shadow: var(--shadow-soft); }
+    .toc-drawer {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      z-index: 22;
+      display: flex;
+      align-items: stretch;
+      transform: translate(calc(100% - 38px), -50%);
+      transition: transform 0.18s ease;
+      max-height: min(520px, calc(100% - 4rem));
+    }
+    .toc-drawer:hover,
+    .toc-drawer.open {
+      transform: translate(0, -50%);
+    }
+    .toc-toggle {
+      width: 38px;
+      min-height: 132px;
+      border-radius: 14px 0 0 14px;
+      border-right: 0;
+      writing-mode: vertical-rl;
+      letter-spacing: 0.08em;
+      box-shadow: 0 14px 34px color-mix(in srgb, var(--text) 18%, transparent);
+    }
+    .toc-panel {
+      width: min(300px, 72vw);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 14px 0 0 14px;
+      background: var(--surface-solid);
+      color: var(--text);
+      box-shadow: 0 18px 44px color-mix(in srgb, var(--text) 16%, transparent);
+    }
+    .toc-panel-title { padding: 0.75rem 0.85rem 0.45rem; font-weight: 900; font-size: 0.9rem; border-bottom: 1px solid var(--line); }
+    .toc-list { min-height: 0; overflow: auto; padding: 0.55rem; display: grid; gap: 0.25rem; }
+    .toc-item { display: block; width: 100%; text-align: left; padding: 0.36rem 0.5rem; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-size: 0.78rem; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .toc-item:hover,
+    .toc-item.active { background: var(--primary-soft); color: var(--primary-strong); }
+    .toc-level-1 { padding-left: 0.5rem; }
+    .toc-level-2 { padding-left: 1rem; }
+    .toc-level-3 { padding-left: 1.5rem; }
+    .toc-level-4 { padding-left: 2rem; }
+    .toc-empty { color: var(--muted); font-size: 0.82rem; padding: 0.6rem; }
 
     .ops-drawer {
       position: fixed;
@@ -619,6 +665,27 @@
     .image-name { margin-top: 0.45rem; font-size: 0.78rem; font-weight: 800; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .image-path { margin-top: 0.2rem; font-size: 0.68rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .image-empty { color: var(--muted); font-size: 0.85rem; padding: 1rem; border: 1px dashed var(--line); border-radius: 14px; }
+    .wx-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 70;
+      width: min(820px, 72vw);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      border-left: 1px solid var(--line);
+      background: var(--surface-solid);
+      box-shadow: -22px 0 70px color-mix(in srgb, var(--text) 18%, transparent);
+    }
+    .wx-panel.hidden { display: none; }
+    .wx-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 0.9rem; border-bottom: 1px solid var(--line); background: var(--surface-subtle); }
+    .wx-panel-header h2 { margin: 0; font-size: 1rem; color: var(--text); }
+    .wx-panel-actions { display: flex; gap: 0.5rem; align-items: center; }
+    .wx-copy-status { min-width: 8.8rem; color: var(--muted); font-size: 0.82rem; font-weight: 800; white-space: nowrap; }
+    .wx-copy-status.ok { color: var(--green); }
+    .wx-copy-status.err { color: #fca5a5; }
+    .wx-frame { width: 100%; height: 100%; border: 0; background: #f5f6f8; }
 
     body.preview-only .workspace { grid-template-columns: 1fr; }
     body.preview-only .pane.editor-pane { display: none; }
@@ -676,6 +743,7 @@
           <button id="splitBtn">分栏</button>
           <button id="editBtn">仅编辑</button>
           <button id="previewBtn">仅预览</button>
+          <button id="wxRenderBtn">渲染微信</button>
         </div>
         <div class="toolbar-right">
           <label class="theme-picker" aria-label="编辑器主题">
@@ -736,6 +804,13 @@
             <span>以线上 Markdown 效果为参考</span>
           </div>
           <article class="preview" id="preview"></article>
+          <aside class="toc-drawer" id="tocDrawer" aria-label="预览目录">
+            <button class="toc-toggle primary" id="tocToggle" type="button">目录</button>
+            <nav class="toc-panel">
+              <div class="toc-panel-title">文章目录</div>
+              <div class="toc-list" id="tocList"></div>
+            </nav>
+          </aside>
         </div>
       </section>
 
@@ -751,6 +826,18 @@
         </div>
         <input class="image-search" id="imageSearchInput" placeholder="搜索已有图片名称或路径">
         <div class="image-grid" id="imageGrid"></div>
+      </section>
+
+      <section class="wx-panel hidden" id="wxPanel" aria-label="微信公众号渲染预览">
+        <div class="wx-panel-header">
+          <h2>微信公众号渲染</h2>
+          <div class="wx-panel-actions">
+            <span class="wx-copy-status" id="wxCopyStatus" aria-live="polite"></span>
+            <button class="primary" id="wxCopyBtn" type="button">一键复制到公号</button>
+            <button id="wxCloseBtn" type="button">关闭</button>
+          </div>
+        </div>
+        <iframe class="wx-frame" id="wxFrame" title="微信公众号渲染预览" src="/md2wx.html"></iframe>
       </section>
 
       <div class="ops-drawer" id="opsDrawer">
@@ -781,6 +868,7 @@
       </div>
     </main>
   </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
     const AUTO_SAVE_DELAY = 1800;
@@ -792,6 +880,8 @@
       autoSaving: false,
       syncScrollEnabled: true,
       syncingScroll: false,
+      wxReady: false,
+      toastTimer: null,
       images: [],
       activeFilterType: null,
       dateFilters: {
@@ -854,6 +944,22 @@
       statusText.className = `status ${type}`;
     }
 
+    function showToast(message, type = 'ok') {
+      const toast = $('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      clearTimeout(state.toastTimer);
+      state.toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2400);
+    }
+
+    function setWxCopyStatus(message = '', type = '') {
+      const status = $('wxCopyStatus');
+      status.textContent = message;
+      status.className = `wx-copy-status ${type}`;
+    }
+
     function setDirty(value) {
       state.dirty = value;
       setStatus(value ? '有未保存改动' : '已保存', value ? 'dirty' : 'ok');
@@ -909,9 +1015,130 @@
       preview.innerHTML = marked.parse(editor.value || '');
       preview.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
       enhanceCodeBlocks();
+      buildPreviewToc();
+      updateActiveToc();
       const lines = editor.value ? editor.value.split(/\r\n|\r|\n/).length : 1;
       $('stats').textContent = `${editor.value.length} 字 / ${lines} 行`;
       if (state.syncScrollEnabled) syncScroll(editor, preview);
+    }
+
+    function slugifyHeading(text) {
+      return String(text || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, '-')
+        .replace(/^-+|-+$/g, '') || 'heading';
+    }
+
+    function buildPreviewToc() {
+      const headings = Array.from(preview.querySelectorAll('h1, h2, h3, h4'));
+      const usedIds = new Map();
+      const tocList = $('tocList');
+      tocList.innerHTML = '';
+
+      if (headings.length === 0) {
+        tocList.innerHTML = '<div class="toc-empty">暂无目录</div>';
+        return;
+      }
+
+      headings.forEach((heading) => {
+        const level = Number(heading.tagName.slice(1));
+        const text = heading.textContent.trim();
+        const baseId = heading.id || slugifyHeading(text);
+        const count = usedIds.get(baseId) || 0;
+        usedIds.set(baseId, count + 1);
+        heading.id = count === 0 ? baseId : `${baseId}-${count + 1}`;
+
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = `toc-item toc-level-${level}`;
+        item.dataset.target = heading.id;
+        item.textContent = text;
+        item.addEventListener('click', () => {
+          heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          $('tocDrawer').classList.remove('open');
+        });
+        tocList.appendChild(item);
+      });
+    }
+
+    function updateActiveToc() {
+      const items = Array.from(document.querySelectorAll('.toc-item'));
+      if (items.length === 0) return;
+      const headings = items
+        .map((item) => document.getElementById(item.dataset.target))
+        .filter(Boolean);
+      const current = headings.reduce((active, heading) => {
+        const offset = heading.getBoundingClientRect().top - preview.getBoundingClientRect().top;
+        return offset <= 90 ? heading : active;
+      }, headings[0]);
+      items.forEach((item) => item.classList.toggle('active', item.dataset.target === current.id));
+    }
+
+    function closeTocDrawer() {
+      $('tocDrawer').classList.remove('open');
+    }
+
+    function syncWxMarkdown() {
+      const frame = $('wxFrame');
+      frame.contentWindow?.postMessage({ type: 'md2wx:setMarkdown', markdown: editor.value }, window.location.origin);
+    }
+
+    function openWxPanel() {
+      $('wxPanel').classList.remove('hidden');
+      setTimeout(syncWxMarkdown, 80);
+    }
+
+    function closeWxPanel() {
+      $('wxPanel').classList.add('hidden');
+    }
+
+    async function copyWxContent() {
+      const copyButton = $('wxCopyBtn');
+      copyButton.disabled = true;
+      copyButton.textContent = '复制中...';
+      setWxCopyStatus('复制中...');
+      showToast('正在复制微信公众号排版内容...');
+
+      try {
+        const frameWindow = $('wxFrame').contentWindow;
+        if (!frameWindow) throw new Error('微信渲染窗口尚未准备好');
+
+        if (frameWindow.editor) frameWindow.editor.value = editor.value;
+        if (typeof frameWindow.render === 'function') frameWindow.render();
+        if (typeof frameWindow.buildInlineHTML !== 'function') throw new Error('微信渲染器尚未加载完成，请稍后再试');
+
+        const html = frameWindow.buildInlineHTML();
+        const box = document.createElement('div');
+        box.innerHTML = html;
+        const plain = box.innerText;
+
+        if (navigator.clipboard && window.ClipboardItem) {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'text/html': new Blob([html], { type: 'text/html' }),
+              'text/plain': new Blob([plain], { type: 'text/plain' }),
+            }),
+          ]);
+          setStatus('已复制微信公众号排版内容', 'ok');
+          setWxCopyStatus('复制成功，可以去公众号粘贴', 'ok');
+          showToast('已复制微信公众号排版内容', 'ok');
+          return;
+        }
+
+        if (typeof frameWindow.fallbackCopy === 'function') {
+          frameWindow.fallbackCopy(html);
+          setStatus('已复制微信公众号排版内容', 'ok');
+          setWxCopyStatus('复制成功，可以去公众号粘贴', 'ok');
+          showToast('已复制微信公众号排版内容', 'ok');
+          return;
+        }
+
+        throw new Error('当前浏览器不支持自动复制，请在微信渲染面板内手动复制');
+      } finally {
+        copyButton.disabled = false;
+        copyButton.textContent = '一键复制到公号';
+      }
     }
 
     function getCodeLanguage(codeElement) {
@@ -1339,9 +1566,12 @@
       await loadPosts();
     }
 
-    editor.addEventListener('input', () => { renderPreview(); markChanged(); });
+    editor.addEventListener('input', () => { renderPreview(); markChanged(); if (!$('wxPanel').classList.contains('hidden')) syncWxMarkdown(); });
     editor.addEventListener('scroll', () => syncScroll(editor, preview));
-    preview.addEventListener('scroll', () => syncScroll(preview, editor));
+    preview.addEventListener('scroll', () => {
+      syncScroll(preview, editor);
+      updateActiveToc();
+    });
     editor.addEventListener('paste', async (event) => {
       const files = Array.from(event.clipboardData?.files || []).filter((file) => file.type.startsWith('image/'));
       if (files.length === 0) return;
@@ -1369,11 +1599,33 @@
       for (const file of files) await uploadImage(file, { insert: files.length === 1 });
       event.target.value = '';
     });
+    $('wxRenderBtn').addEventListener('click', openWxPanel);
+    $('wxCloseBtn').addEventListener('click', closeWxPanel);
+    $('wxCopyBtn').addEventListener('click', () => copyWxContent().catch((error) => {
+      setWxCopyStatus('复制失败，请重试', 'err');
+      showToast(error.message, 'err');
+      alert(error.message);
+    }));
+    $('wxFrame').addEventListener('load', () => {
+      state.wxReady = true;
+      syncWxMarkdown();
+    });
+    window.addEventListener('message', (event) => {
+      if (event.data?.type === 'md2wx:ready') {
+        state.wxReady = true;
+        syncWxMarkdown();
+      }
+    });
     $('infoToggle').addEventListener('click', (event) => {
       event.stopPropagation();
       $('infoDrawer').classList.toggle('open');
     });
     $('infoDrawer').addEventListener('click', (event) => event.stopPropagation());
+    $('tocToggle').addEventListener('click', (event) => {
+      event.stopPropagation();
+      $('tocDrawer').classList.toggle('open');
+    });
+    $('tocDrawer').addEventListener('click', (event) => event.stopPropagation());
     $('opsToggle').addEventListener('click', () => $('opsDrawer').classList.toggle('open'));
     $('splitBtn').addEventListener('click', () => { document.body.className = ''; });
     $('editBtn').addEventListener('click', () => { document.body.className = 'edit-only'; });
@@ -1391,11 +1643,18 @@
     $('gitStatusBtn').addEventListener('click', () => gitStatus().catch((error) => alert(error.message)));
     $('commitPushBtn').addEventListener('click', () => commitAndPush().catch((error) => alert(error.message)));
 
-    document.addEventListener('click', closeInfoDrawer);
+    document.addEventListener('click', () => {
+      closeInfoDrawer();
+      closeTocDrawer();
+    });
 
     window.addEventListener('keydown', (event) => {
       const key = event.key.toLowerCase();
-      if (event.key === 'Escape') closeInfoDrawer();
+      if (event.key === 'Escape') {
+        closeInfoDrawer();
+        closeTocDrawer();
+        closeWxPanel();
+      }
       if ((event.metaKey || event.ctrlKey) && key === 's') {
         event.preventDefault();
         savePost(false).catch((error) => alert(error.message));

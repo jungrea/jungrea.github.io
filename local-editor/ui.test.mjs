@@ -107,6 +107,38 @@ test('image picker keeps search above grid and shows newest images first', () =>
   assert.match(html, /\.image-grid \{[\s\S]*align-content: start/);
 });
 
+test('preview pane has a collapsible table of contents drawer', () => {
+  assert.match(html, /id="tocDrawer"/);
+  assert.match(html, /id="tocToggle"/);
+  assert.match(html, /id="tocList"/);
+  assert.match(html, /function buildPreviewToc/);
+  assert.match(html, /function updateActiveToc/);
+  assert.match(html, /\.toc-drawer\.open/);
+});
+
+test('editor can render and copy current markdown through same-origin md2wx HTML output', () => {
+  assert.match(html, /id="wxRenderBtn"/);
+  assert.match(html, /渲染微信/);
+  assert.match(html, /id="wxPanel"/);
+  assert.match(html, /id="wxFrame"/);
+  assert.match(html, /id="wxCopyBtn"/);
+  assert.match(html, /一键复制到公号/);
+  assert.match(html, /id="wxCopyStatus"/);
+  assert.match(html, /复制中/);
+  assert.match(html, /复制成功，可以去公众号粘贴/);
+  assert.match(html, /function openWxPanel/);
+  assert.match(html, /function syncWxMarkdown/);
+  assert.match(html, /md2wx:setMarkdown/);
+  assert.match(html, /buildInlineHTML\(\)/);
+  assert.match(html, /new ClipboardItem/);
+  assert.match(html, /'text\/html'/);
+  assert.match(html, /'text\/plain'/);
+  assert.match(html, /id="toast"/);
+  assert.match(html, /function showToast/);
+  assert.match(html, /showToast\('已复制微信公众号排版内容'/);
+  assert.doesNotMatch(html, /md2wx:copy/);
+});
+
 test('split view keeps linked scrolling always enabled without toolbar toggle', () => {
   assert.doesNotMatch(html, /id="syncScrollBtn"/);
   assert.match(html, /function syncScroll/);

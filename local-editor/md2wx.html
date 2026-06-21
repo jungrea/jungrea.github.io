@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MD2WX · Markdown 转微信公众号排版</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📝%3C/text%3E%3C/svg%3E" />
+
+<!-- marked v4: 仍支持 highlight 选项（v5+ 已移除） -->
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<!-- highlight.js: 代码高亮 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-light.min.css">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    background: #f5f6f8;
+    color: #2c3e50;
+    overflow: hidden;
+  }
+
+  /* ========== 顶部栏 ========== */
+  header {
+    height: 56px;
+    background: #fff;
+    border-bottom: 1px solid #e6e8eb;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    position: relative;
+    z-index: 10;
+  }
+  .logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: #07c160;
+    margin-right: 8px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #8a94a6;
+    margin-right: auto;
+  }
+  .toolbar { display: flex; gap: 10px; align-items: center; }
+
+  button {
+    height: 36px;
+    border-radius: 6px;
+    border: 1px solid #d8dde6;
+    background: #fff;
+    color: #333;
+    font-size: 14px;
+    padding: 0 14px;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  button:hover { border-color: #07c160; color: #07c160; }
+  button.primary {
+    background: #07c160;
+    color: #fff;
+    border-color: #07c160;
+    font-weight: 500;
+  }
+  button.primary:hover { background: #06ad56; color: #fff; }
+  button.ghost { background: transparent; }
+
+  /* ========== 主体三栏 ========== */
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: calc(100vh - 56px);
+  }
+  .pane {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fff;
+  }
+  .pane + .pane { border-left: 1px solid #e6e8eb; }
+  .pane-header {
+    height: 38px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-size: 12px;
+    color: #8a94a6;
+    background: #fafbfc;
+    border-bottom: 1px solid #eef0f3;
+    letter-spacing: 0.5px;
+  }
+  .pane-header .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #07c160; margin-right: 8px;
+  }
+
+  /* 编辑器 */
+  #editor {
+    flex: 1;
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 20px 24px;
+    font-family: "SF Mono", Monaco, Menlo, Consolas, "Source Code Pro", monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #2c3e50;
+    background: #fff;
+    tab-size: 2;
+  }
+
+  /* 预览容器 */
+  .preview-wrap {
+    flex: 1;
+    overflow-y: auto;
+    background: #f0f2f5;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  /* 设备切换按钮组 */
+  .device-switch {
+    display: inline-flex;
+    background: #fff;
+    border-radius: 999px;
+    padding: 4px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .device-switch button {
+    height: 32px; padding: 0 16px; border: none; background: transparent;
+    border-radius: 999px; font-size: 13px; color: #8a94a6; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; transition: all .2s;
+  }
+  .device-switch button.active { background: #fff5f0; color: #b94a3b; box-shadow: 0 1px 3px rgba(185,74,59,0.15); }
+  .device-switch svg { width: 14px; height: 14px; }
+
+  #preview {
+    background: #fff;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 720px;
+    padding: 30px 24px;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    transition: max-width .3s ease, padding .3s ease;
+    /* 预览内容由 JS 注入 inline style，与复制结果保持完全一致 */
+  }
+  /* 手机模式：模拟微信文章窄屏 */
+  #preview.mobile {
+    max-width: 375px;
+    padding: 24px 16px;
+    border: 8px solid #2c3e50;
+    border-radius: 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+  #preview blockquote p { margin: 0 !important; }
+
+  /* Mac 风格代码块三色点（仅预览展示，复制时由 JS 注入 inline 样式） */
+  .mac-dots { display:flex; gap:6px; padding:10px 14px 0; }
+  .mac-dots span { width:12px; height:12px; border-radius:50%; display:inline-block; }
+  .mac-dots .r { background:#ff5f56; }
+  .mac-dots .y { background:#ffbd2e; }
+  .mac-dots .g { background:#27c93f; }
+
+  /* ========== Toast ========== */
+  .toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    background: rgba(7,193,96,0.95); color: #fff;
+    padding: 10px 22px; border-radius: 6px; font-size: 14px;
+    box-shadow: 0 4px 16px rgba(7,193,96,0.3);
+    opacity: 0; transition: all .25s; pointer-events: none; z-index: 100;
+  }
+  .toast.show { opacity: 1; top: 70px; }
+  .toast.error { background: rgba(220,53,69,0.95); box-shadow: 0 4px 16px rgba(220,53,69,0.3); }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #c8cdd4; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #a6acb6; }
+
+  /* 预览区代码块的横向滚动条：强制始终可见，避免 macOS 隐藏 */
+  #preview pre::-webkit-scrollbar,
+  #preview section::-webkit-scrollbar {
+    -webkit-appearance: none;
+    height: 6px;
+  }
+  #preview pre::-webkit-scrollbar-track,
+  #preview section::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  #preview pre::-webkit-scrollbar-thumb,
+  #preview section::-webkit-scrollbar-thumb {
+    background: #c8cdd4;
+    border-radius: 3px;
+  }
+
+  @media (max-width: 768px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    .pane + .pane { border-left: none; border-top: 1px solid #e6e8eb; }
+    .subtitle { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="logo">📝 MD2WX</span>
+  <span class="subtitle">Markdown → 微信公众号 一键排版</span>
+  <div class="toolbar">
+    <button class="ghost" id="loadDemoBtn">载入示例</button>
+    <button class="ghost" id="clearBtn">清空</button>
+    <button class="primary" id="copyBtn">📋 一键复制到公众号</button>
+  </div>
+</header>
+
+<main>
+  <section class="pane">
+    <div class="pane-header"><span class="dot"></span>Markdown 编辑</div>
+    <textarea id="editor" spellcheck="false" placeholder="在此粘贴或编写 Markdown..."></textarea>
+  </section>
+  <section class="pane">
+    <div class="pane-header"><span class="dot" style="background:#576b95"></span>公众号预览（所见即所得）</div>
+    <div class="preview-wrap">
+      <div class="device-switch" id="deviceSwitch">
+        <button data-device="desktop" class="active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          桌面
+        </button>
+        <button data-device="mobile">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+          手机
+        </button>
+      </div>
+      <div id="preview"></div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================================================================
+ * 主题样式表（用于复制时 inline 注入）
+ * 当前仅保留“赛博禅心”主题，定义各类标签的 style 字符串
+ * =================================================================== */
+const THEMES = {
+  // —— 复刻"赛博禅心"博客风 ——
+  'cyber-zen': {
+    container: 'font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;font-size:15px;line-height:1.88;color:#4a4a4a;letter-spacing:0.055em;box-sizing:border-box;',
+    side_indent: 'margin-left:8px;margin-right:8px;',
+    h1: 'font-size:24px;font-weight:700;color:#bf4b42;margin:26px 0 20px;line-height:1.45;letter-spacing:0.02em;',
+    h2: 'font-size:21px;font-weight:700;color:#bf4b42;margin:38px 0 18px;line-height:1.45;letter-spacing:0.02em;',
+    h3: 'font-size:17px;font-weight:700;color:#bf4b42;margin:28px 0 14px;line-height:1.45;letter-spacing:0.02em;',
+    p:  'margin:0 0 24px;text-align:left;font-size:15px;line-height:1.88;color:#4a4a4a;letter-spacing:0.055em;',
+    text_inner: 'font-size:15px;line-height:1.88;color:#4a4a4a;letter-spacing:0.055em;',
+    a:  'color:#c76b4d !important;text-decoration:underline !important;text-decoration-color:#c76b4d;text-underline-offset:3px;text-decoration-thickness:1px;border-bottom:none;word-break:break-all;font-size:15px;',
+    link_inner: 'color:#c76b4d !important;text-decoration:underline !important;text-decoration-color:#c76b4d;text-underline-offset:3px;text-decoration-thickness:1px;font-size:15px;',
+    strong: 'color:#222;font-weight:700;font-size:15px;',
+    em: 'font-style:italic;color:#3f3f3f;',
+    ul: 'margin:0 0 24px;padding-left:24px;',
+    ol: 'margin:0 0 24px;padding-left:24px;',
+    li: 'margin-bottom:8px;font-size:15px;line-height:1.88;color:#4a4a4a;letter-spacing:0.055em;',
+    blockquote: 'margin:28px auto;padding:20px 24px;background:#fff5f2;color:#e05745;text-align:center;font-style:normal;font-weight:400;border:none;border-radius:8px;max-width:92%;box-sizing:border-box;font-size:15px;line-height:1.88;letter-spacing:0.045em;',
+    code_inline: 'background:#f4f5f7;color:#b94a3b;padding:2px 6px;border-radius:3px;font-size:90%;font-family:"SF Mono",Monaco,Menlo,Consolas,monospace;',
+    pre_wrap: 'background:#f6f8fc;border:1px solid #e8ecf3;border-radius:12px;margin:24px 0;box-shadow:0 4px 16px rgba(60,80,120,0.06);',
+    scrollbar_color: '#c8cdd4',
+    pre: 'margin:0;padding:6px 18px 18px;background:transparent;border:none;border-radius:0;white-space:pre;font-size:13px;line-height:1.7;font-family:"SF Mono",Monaco,Menlo,Consolas,"Source Code Pro",monospace;',
+    code_block: 'color:#383a42;background:transparent;padding:0;font-family:"SF Mono",Monaco,Menlo,Consolas,"Source Code Pro",monospace;font-size:13px;line-height:1.7;',
+    hr: 'border:none;border-top:1px solid #e6e6e6;margin:36px 0;',
+    img: 'max-width:100%;border-radius:4px;display:block;margin:20px auto;',
+    table: 'border-collapse:collapse;width:100%;margin:22px 0;font-size:15px;',
+    th: 'border:1px solid #dfe2e5;padding:8px 12px;text-align:left;background:#f6f8fa;font-weight:600;',
+    td: 'border:1px solid #dfe2e5;padding:8px 12px;text-align:left;'
+  }
+};
+
+/* ===================================================================
+ * 配置 marked
+ * =================================================================== */
+marked.setOptions({
+  gfm: true,
+  breaks: true
+});
+
+/* ===================================================================
+ * DOM
+ * =================================================================== */
+const editor = document.getElementById('editor');
+const preview = document.getElementById('preview');
+const copyBtn = document.getElementById('copyBtn');
+const clearBtn = document.getElementById('clearBtn');
+const loadDemoBtn = document.getElementById('loadDemoBtn');
+const toast = document.getElementById('toast');
+
+/* ===================================================================
+ * 渲染预览：直接复用 buildInlineHTML，确保预览 === 复制结果
+ * =================================================================== */
+function render() {
+  preview.innerHTML = buildInlineHTML();
+}
+
+/* ===================================================================
+ * highlight.js token → inline color 映射
+ * 公众号编辑器会过滤外部 CSS 类，必须把高亮颜色"焊死"到 span 上
+ * 配色参考截图（One Light 改良版）
+ * 注意：hljs v11 使用分级 scope，如 title.function → class="hljs-title hljs-function"
+ *      所以必须遍历 span 的所有 class，逐个匹配并叠加样式
+ * =================================================================== */
+const HLJS_COLORS = {
+  // 注释
+  'hljs-comment':       'color:#a0a8b8;font-style:italic;',
+  'hljs-quote':         'color:#a0a8b8;font-style:italic;',
+  // 关键字（const / await / def / import / class / if / for ...）
+  'hljs-keyword':       'color:#a626a4;font-weight:600;',
+  'hljs-selector-tag':  'color:#a626a4;font-weight:600;',
+  'hljs-doctag':        'color:#a626a4;font-weight:600;',
+  // 内置类型 / 内建函数（print, len, range, str, int, list, Optional ...）
+  'hljs-built_in':      'color:#c18401;',
+  'hljs-type':          'color:#c18401;',
+  'hljs-class':         'color:#c18401;',
+  // 字面量（True / False / None / null / undefined）
+  'hljs-literal':       'color:#0184bb;',
+  // 字符串
+  'hljs-string':        'color:#50a14f;',
+  'hljs-regexp':        'color:#50a14f;',
+  'hljs-subst':         'color:#383a42;', // f-string 中 {} 内的内容回归普通色
+  // 数字 / 符号
+  'hljs-number':        'color:#986801;',
+  'hljs-symbol':        'color:#986801;',
+  // 函数 / 类标题
+  'hljs-title':         'color:#4078f2;',
+  'hljs-function':      'color:#4078f2;',
+  'hljs-section':       'color:#e45649;',
+  // HTML 标签
+  'hljs-name':          'color:#e45649;',
+  'hljs-tag':           'color:#383a42;',
+  // 属性
+  'hljs-attr':          'color:#986801;',
+  'hljs-attribute':     'color:#986801;',
+  'hljs-property':      'color:#383a42;',
+  // 变量 / self / this
+  'hljs-variable':      'color:#e45649;',
+  'hljs-template-variable': 'color:#e45649;',
+  // 元数据：装饰器 @xxx, #include, shebang
+  'hljs-meta':          'color:#a626a4;font-weight:600;',
+  'hljs-meta-string':   'color:#50a14f;',
+  // 参数
+  'hljs-params':        'color:#383a42;',
+  'hljs-punctuation':   'color:#383a42;',
+  // diff
+  'hljs-deletion':      'color:#e45649;background:#ffeaea;',
+  'hljs-addition':      'color:#50a14f;background:#eaffea;',
+  // 修饰
+  'hljs-emphasis':      'font-style:italic;',
+  'hljs-strong':        'font-weight:600;',
+  // 链接
+  'hljs-link':          'color:#4078f2;text-decoration:underline;',
+  'hljs-bullet':        'color:#986801;'
+};
+
+/* Mac 三色圆点（inline），用于代码块顶部装饰 */
+const MAC_DOTS_HTML =
+  '<section style="padding:12px 14px 4px;font-size:0;">' +
+    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ff5f56;margin-right:8px;vertical-align:middle;"></span>' +
+    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ffbd2e;margin-right:8px;vertical-align:middle;"></span>' +
+    '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#27c93f;vertical-align:middle;"></span>' +
+  '</section>';
+
+/* ===================================================================
+ * 生成"带 inline style"的 HTML（用于复制到公众号 / 预览）
+ * =================================================================== */
+function buildInlineHTML() {
+  const theme = THEMES['cyber-zen'];
+  const tmp = document.createElement('div');
+  tmp.innerHTML = marked.parse(editor.value);
+
+  // === 0. 提取代码语言，未指定时默认按 python 渲染；暂不高亮（后面拆行后逐行高亮）
+  tmp.querySelectorAll('pre code').forEach(codeEl => {
+    const langMatch = (codeEl.getAttribute('class') || '').match(/language-(\S+)/);
+    codeEl.setAttribute('data-lang', langMatch ? langMatch[1] : 'python');
+  });
+
+  const styleMap = {
+    'H1': theme.h1, 'H2': theme.h2, 'H3': theme.h3,
+    'H4': theme.h3, 'H5': theme.h3, 'H6': theme.h3,
+    'P': theme.p, 'A': theme.a, 'STRONG': theme.strong, 'B': theme.strong,
+    'EM': theme.em, 'I': theme.em,
+    'UL': theme.ul, 'OL': theme.ol, 'LI': theme.li,
+    'BLOCKQUOTE': theme.blockquote,
+    'HR': theme.hr,
+    'IMG': theme.img,
+    'TABLE': theme.table, 'TH': theme.th, 'TD': theme.td
+  };
+  const sideIndentTags = new Set(['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'UL', 'OL', 'BLOCKQUOTE', 'HR', 'TABLE']);
+
+  // 1. 给所有非代码元素打 inline style
+  tmp.querySelectorAll('*').forEach(el => {
+    const tag = el.tagName;
+    if (tag === 'CODE') {
+      if (el.parentElement && el.parentElement.tagName === 'PRE') {
+        el.setAttribute('style', theme.code_block);
+      } else {
+        el.setAttribute('style', theme.code_inline);
+      }
+      return;
+    }
+    if (tag === 'PRE') return; // 代码块单独处理
+    if (styleMap[tag]) {
+      const sideIndent = sideIndentTags.has(tag) ? theme.side_indent : '';
+      el.setAttribute('style', styleMap[tag] + sideIndent);
+    }
+  });
+
+  // 2. 给 hljs 高亮 span 打 inline color（关键：公众号会丢掉 CSS 类）
+  //    hljs v11 的分级 scope 会生成多个 class（如 "hljs-title hljs-function"），
+  //    需要遍历所有 class 并叠加对应样式
+  tmp.querySelectorAll('pre code span').forEach(span => {
+    const classes = (span.getAttribute('class') || '').split(/\s+/).filter(c => c.startsWith('hljs-'));
+    if (classes.length === 0) return;
+    let style = '';
+    classes.forEach(c => { if (HLJS_COLORS[c]) style += HLJS_COLORS[c]; });
+    if (style) span.setAttribute('style', style);
+    span.removeAttribute('class');
+  });
+
+  // 3. 代码块：复刻微信公众号"插入代码"原生样式
+  //    关键：按原始文本拆行 → 逐行单独跑 hljs 高亮 → 行号与代码 1:1 对齐
+  tmp.querySelectorAll('pre').forEach(pre => {
+    const code = pre.querySelector('code');
+    if (!code) return;
+
+    const lang = code.getAttribute('data-lang') || 'python';
+    // 用 textContent 取原始代码（不含任何 HTML 标签），按 \n 拆行 —— 行数绝对准确
+    let raw = code.textContent;
+    // 去除首尾空行（marked 可能在两端各加换行）
+    raw = raw.replace(/^\n+/, '').replace(/\n+$/, '');
+    const lines = raw.split('\n');
+
+    // 工具函数：把 hljs 输出的 class span 转成 inline color span
+    function inlineColorize(html) {
+      const box = document.createElement('div');
+      box.innerHTML = html;
+      box.querySelectorAll('span').forEach(span => {
+        const classes = (span.getAttribute('class') || '').split(/\s+/).filter(c => c.startsWith('hljs-'));
+        if (classes.length === 0) { span.removeAttribute('class'); return; }
+        let style = '';
+        classes.forEach(c => { if (HLJS_COLORS[c]) style += HLJS_COLORS[c]; });
+        if (style) span.setAttribute('style', style);
+        span.removeAttribute('class');
+      });
+      return box.innerHTML;
+    }
+
+    // 每一行都是一个 table-row：行号与代码在同一行里。
+    // 这样即使复制到微信后长代码被强制换行，行号也会跟随该行一起变高，不会再错位。
+    const rowsHtml = lines.map((line, i) => {
+      let highlighted;
+      try {
+        if (lang && hljs.getLanguage(lang)) {
+          highlighted = hljs.highlight(line, { language: lang, ignoreIllegals: true }).value;
+        } else {
+          highlighted = line.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+        }
+      } catch (e) {
+        highlighted = line.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+      }
+      highlighted = inlineColorize(highlighted);
+      // 保护所有文本节点中的半角空格，避免复制到微信后被吞掉（尤其 def 与函数名之间）
+      highlighted = highlighted.replace(/(<[^>]+>)|([^<]+)/g, (m, tag, text) => {
+        if (tag) return tag;
+        return text.replace(/ /g, '&nbsp;').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
+      });
+
+      return '<section style="display:table-row;">' +
+        '<section style="display:table-cell;padding:0 18px;vertical-align:top;white-space:nowrap;word-break:normal;">' +
+          `<span style="display:inline-block;min-width:max-content;white-space:nowrap;word-break:normal;line-height:1.75;font-size:12px;font-family:'SF Mono',Monaco,Menlo,Consolas,monospace;color:#383a42;">${highlighted || '&nbsp;'}</span>` +
+        '</section>' +
+      '</section>';
+    }).join('');
+
+    const codeBlockHtml =
+      '<section style="background:#f8fbff;border:1px solid #e8edf5;border-radius:14px;margin:22px 8px;box-shadow:0 6px 20px rgba(60,80,120,0.06);overflow:hidden;">' +
+        '<section style="padding:12px 18px 4px;font-size:12px;line-height:1;letter-spacing:0;">' +
+          '<span style="display:inline-block;width:12px;color:#ff5f56;margin-right:6px;vertical-align:middle;">●</span>' +
+          '<span style="display:inline-block;width:12px;color:#ffbd2e;margin-right:6px;vertical-align:middle;">●</span>' +
+          '<span style="display:inline-block;width:12px;color:#27c93f;vertical-align:middle;">●</span>' +
+        '</section>' +
+        '<section style="padding:8px 0 10px;overflow-x:auto;-webkit-overflow-scrolling:touch;">' +
+          '<section style="display:table;">' + rowsHtml + '</section>' +
+        '</section>' +
+        '<section style="padding:0 18px 14px;text-align:center;font-size:12px;line-height:1.6;color:#9aa4b2;letter-spacing:0.02em;">↔ 可左右滑动</section>' +
+      '</section>';
+
+    const wrap = document.createElement('div');
+    wrap.innerHTML = codeBlockHtml;
+    pre.parentNode.replaceChild(wrap.firstChild, pre);
+  });
+
+  // 4. 正文字号兜底：微信编辑器可能忽略 <p> 的 font-size，
+  //    所以把普通文本节点再包一层带 font-size 的 span
+  function wrapDirectTextNodes(el, style) {
+    Array.from(el.childNodes).forEach(node => {
+      if (node.nodeType !== Node.TEXT_NODE || !node.nodeValue) return;
+      const span = document.createElement('span');
+      span.setAttribute('style', style);
+      span.textContent = node.nodeValue;
+      node.parentNode.replaceChild(span, node);
+    });
+  }
+
+  if (theme.text_inner) {
+    tmp.querySelectorAll('p, li').forEach(el => {
+      if (el.closest('blockquote')) return;
+      wrapDirectTextNodes(el, theme.text_inner);
+    });
+  }
+
+  // 5. 链接样式兜底：微信可能重写 <a> 的颜色，所以在 a 内再包一层 span
+  if (theme.link_inner) {
+    tmp.querySelectorAll('a').forEach(a => {
+      if (a.querySelector('img')) return;
+      a.setAttribute('style', theme.a);
+      a.innerHTML = `<span style="${theme.link_inner}">${a.innerHTML}</span>`;
+    });
+  }
+
+  // 6. blockquote 内 p 去除 margin，并继承引用块的浅红文字/常规字重
+  tmp.querySelectorAll('blockquote p').forEach(p => {
+    p.setAttribute('style', (p.getAttribute('style') || '') + 'margin:0;color:#e05745;font-size:15px;font-weight:400;text-align:center;');
+    wrapDirectTextNodes(p, 'font-size:15px;line-height:1.88;color:#e05745;font-weight:400;text-align:center;');
+  });
+
+  // 5. 把 <blockquote> 改为 <section>，避免微信编辑器对 blockquote 强制注入左竖线样式
+  tmp.querySelectorAll('blockquote').forEach(bq => {
+    const sec = document.createElement('section');
+    // 复制属性
+    for (const attr of bq.attributes) sec.setAttribute(attr.name, attr.value);
+    sec.innerHTML = bq.innerHTML;
+    bq.parentNode.replaceChild(sec, bq);
+  });
+
+  return `<section style="${theme.container}">${tmp.innerHTML}</section>`;
+}
+
+/* ===================================================================
+ * 一键复制：以 text/html 写入剪贴板，公众号粘贴后保留排版
+ * =================================================================== */
+async function copyToClipboard() {
+  const html = buildInlineHTML();
+  // 同时构造一份纯文本兜底
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const plain = tmp.innerText;
+
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([plain], { type: 'text/plain' })
+        })
+      ]);
+      showToast('✅ 已复制带排版的内容！请前往微信公众平台编辑器粘贴');
+      return;
+    }
+  } catch (e) {
+    console.warn('clipboard API failed, fallback to execCommand', e);
+  }
+
+  // 兼容兜底：用 contenteditable + execCommand('copy')
+  fallbackCopy(html);
+}
+
+function fallbackCopy(html) {
+  const div = document.createElement('div');
+  div.contentEditable = 'true';
+  div.innerHTML = html;
+  div.style.position = 'fixed';
+  div.style.left = '-9999px';
+  div.style.top = '0';
+  document.body.appendChild(div);
+
+  const range = document.createRange();
+  range.selectNodeContents(div);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  sel.removeAllRanges();
+  document.body.removeChild(div);
+
+  if (ok) showToast('✅ 已复制带排版的内容！请前往微信公众平台编辑器粘贴');
+  else showToast('❌ 复制失败，请手动选中预览区复制', true);
+}
+
+function showToast(msg, isErr = false) {
+  toast.textContent = msg;
+  toast.classList.toggle('error', isErr);
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2400);
+}
+
+/* ===================================================================
+ * 示例 Markdown
+ * =================================================================== */
+const DEMO_MD = `# Anthropic 做了个 Agent 版闲鱼
+
+最近 Anthropic 上线了一个新功能：**Project Deal**，本质是让 Claude 自己去市场上和别的 agent 讨价还价。
+
+所以这套设计其实问了两个问题：AI agent 能不能替人完成二手交易，强模型和弱模型进入同一个市场时，谁会拿到更好的结果。
+
+---
+
+## 它真的成交了
+
+最后真成交的那一轮，已经不是模拟市场，而是办公室里的线下交换。
+
+在测试的 4 个小时里，跑出了 186 笔成功交易，总额 4010 美元。
+
+> 这不是模拟的数字，是 agent 之间真实的价格协商结果。
+
+---
+
+## Opus 更会赚钱
+
+数据上看，Claude Opus 比 Haiku 拿到了高出 35.8% 的成交单价。原因是 Opus 更擅长在谈判中坚持立场，而 Haiku 倾向于快速妥协。
+
+---
+
+## 强硬提示词没赢
+
+研究者尝试给 agent 注入"绝不让步"类的提示词，结果反而成交率下降了 22%。市场更偏好"灵活但有底线"的策略。
+
+---
+
+## 一些代码示例
+
+JavaScript 调用示例：
+
+\`\`\`javascript
+// 使用 API 进行 Markdown 转换
+const response = await fetch('/api/convert', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    markdown: '# Hello World',
+    theme: 'cyber-zen'
+  })
+})
+\`\`\`
+
+Python 调用示例：
+
+\`\`\`python
+# 使用 requests 调用转换 API
+import requests
+from typing import Optional
+
+def convert_markdown(md: str, theme: str = "cyber-zen") -> Optional[str]:
+    """把 Markdown 转成微信公众号 HTML"""
+    resp = requests.post(
+        "https://api.md2wx.com/convert",
+        json={"markdown": md, "theme": theme},
+        timeout=10,
+    )
+    if resp.status_code == 200:
+        return resp.json().get("html")
+    return None
+
+if __name__ == "__main__":
+    html = convert_markdown("# Hello World", theme="cyber-zen")
+    print(f"转换结果长度: {len(html or '')} 字符")
+\`\`\`
+
+---
+
+## 素材和来源
+
+→ Project Deal 官方页面
+https://www.anthropic.com/features/project-deal
+`;
+
+/* ===================================================================
+ * 事件绑定
+ * =================================================================== */
+editor.addEventListener('input', render);
+copyBtn.addEventListener('click', copyToClipboard);
+clearBtn.addEventListener('click', () => {
+  if (editor.value && !confirm('确定清空当前内容？')) return;
+  editor.value = '';
+  render();
+});
+loadDemoBtn.addEventListener('click', () => {
+  editor.value = DEMO_MD;
+  render();
+});
+
+// 设备切换（桌面 / 手机）
+document.getElementById('deviceSwitch').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-device]');
+  if (!btn) return;
+  document.querySelectorAll('#deviceSwitch button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  preview.classList.toggle('mobile', btn.dataset.device === 'mobile');
+});
+
+// Tab 键支持插入两个空格
+editor.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = editor.selectionStart, en = editor.selectionEnd;
+    editor.value = editor.value.slice(0, s) + '  ' + editor.value.slice(en);
+    editor.selectionStart = editor.selectionEnd = s + 2;
+    render();
+  }
+});
+
+// 初始化：载入示例
+editor.value = DEMO_MD;
+render();
+</script>
+</body>
+</html>
