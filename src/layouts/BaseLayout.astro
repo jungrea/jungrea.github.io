@@ -26,6 +26,9 @@ const { title, description = '', currentPath } = Astro.props;
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary" />
+    <script is:inline>
+      (function(){var t=localStorage.getItem('theme');if(t==='light'||(!t&&window.matchMedia('(prefers-color-scheme:light)').matches)){document.documentElement.classList.add('light')}})()
+    </script>
   </head>
   <body>
     <Header currentPath={currentPath || Astro.url?.pathname} />
