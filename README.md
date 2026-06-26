@@ -1,6 +1,7 @@
 # My Blog
 
 基于 [Astro](https://astro.build) 构建的个人技术博客，部署于 GitHub Pages。
+站点采用三栏式布局：左侧为个人信息与导航，中间为正文，右侧为最近更新、热门标签和文章目录。
 
 ## 技术栈
 
@@ -14,13 +15,15 @@
 
 ```
 src/
-├── components/   # UI 组件（Header、Footer、PostCard 等）
+├── components/   # UI 组件（Header、Footer、PostCard、RightSidebar 等）
 ├── content/blog/ # Markdown 文章
-├── layouts/      # 页面布局
-├── pages/        # 路由页面
+├── layouts/      # 页面布局（BaseLayout、BlogPostLayout）
+├── pages/        # 路由页面（首页、文章列表、标签、关于）
 ├── plugins/      # Remark 自定义插件
 ├── styles/       # 全局样式
 └── utils/        # 工具函数
+local-editor/     # 本地网页写作助手（独立服务，不参与线上构建）
+public/           # 静态资源（图片、favicon 等）
 ```
 
 ## 本地开发
@@ -53,6 +56,8 @@ npm run write
 - 新文章自动按 `YYYY/MM/slug.md` 保存，方便按年月管理
 - 粘贴图片并保存到 `public/images/YYYY/MM/`
 - 一键构建、本地预览、查看 Git 改动、提交并推送
+
+![本地写作助手](public/images/readme_1.png)
 
 ## 写作
 
