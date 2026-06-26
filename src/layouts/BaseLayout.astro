@@ -2,15 +2,44 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
+import { getCollection } from 'astro:content';
 import { withBase } from '../utils/url';
 
 interface Props {
   title: string;
   description?: string;
   currentPath?: string;
+  sidebarIndex?: {
+    years: Array<[string, number]>;
+    months: Array<[string, number]>;
+    tags: Array<[string, number]>;
+  };
 }
 
-const { title, description = '', currentPath } = Astro.props;
+const { title, description = '', currentPath, sidebarIndex } = Astro.props;
+const hasRightSidebar = Astro.slots.has('right-sidebar');
+
+const sidebarPosts = await getCollection('blog');
+const sidebarYearMap = new Map<string, number>();
+const sidebarMonthMap = new Map<string, number>();
+const sidebarTagMap = new Map<string, number>();
+
+sidebarPosts.forEach((post) => {
+  const date = post.data.pubDate;
+  const year = date.getFullYear().toString();
+  const month = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  sidebarYearMap.set(year, (sidebarYearMap.get(year) || 0) + 1);
+  sidebarMonthMap.set(month, (sidebarMonthMap.get(month) || 0) + 1);
+  (post.data.tags || []).forEach((tag: string) => {
+    sidebarTagMap.set(tag, (sidebarTagMap.get(tag) || 0) + 1);
+  });
+});
+
+const globalSidebarIndex = sidebarIndex || {
+  years: [...sidebarYearMap.entries()].sort((a, b) => Number(b[0]) - Number(a[0])),
+  months: [...sidebarMonthMap.entries()].sort((a, b) => b[0].localeCompare(a[0])),
+  tags: [...sidebarTagMap.entries()].sort((a, b) => b[1] - a[1]),
+};
 ---
 
 <!DOCTYPE html>
@@ -31,17 +60,67 @@ const { title, description = '', currentPath } = Astro.props;
     </script>
   </head>
   <body>
-    <Header currentPath={currentPath || Astro.url?.pathname} />
-    <main class="main-content">
-      <slot />
-    </main>
+    <Header currentPath={currentPath || Astro.url?.pathname} sidebarIndex={globalSidebarIndex} />
+    <div class:list={['site-shell', { 'has-right-rail': hasRightSidebar }] }>
+      <main class="main-content">
+        <slot />
+      </main>
+      {hasRightSidebar && (
+        <aside class="right-rail">
+          <slot name="right-sidebar" />
+        </aside>
+      )}
+    </div>
     <Footer />
   </body>
 </html>
 
 <style is:global>
+  .site-shell {
+    min-height: calc(100vh - 120px);
+    margin-left: var(--sidebar-width);
+    padding: 1.5rem clamp(1.5rem, 3vw, 3rem) 2rem;
+  }
+
+  .site-shell.has-right-rail {
+    display: grid;
+    grid-template-columns: minmax(0, var(--max-width)) var(--right-rail-width);
+    gap: clamp(1.75rem, 2.6vw, 2.75rem);
+    align-items: start;
+  }
+
   .main-content {
-    min-height: calc(100vh - var(--nav-height) - 120px);
-    margin-top: var(--nav-height);
+    min-width: 0;
+  }
+
+  .right-rail {
+    position: sticky;
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    padding-top: 0.2rem;
+  }
+
+  @media (min-width: 1440px) {
+    .site-shell {
+      padding-right: clamp(3rem, 5vw, 5rem);
+    }
+  }
+
+  @media (max-width: 1180px) {
+    .site-shell.has-right-rail {
+      display: block;
+    }
+
+    .right-rail {
+      display: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .site-shell {
+      margin-left: 0;
+      padding: 1.25rem 1rem 2rem;
+    }
   }
 </style>

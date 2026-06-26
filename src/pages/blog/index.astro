@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostCard from '../../components/PostCard.astro';
+import RightSidebar from '../../components/RightSidebar.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../../utils/url';
 
@@ -34,63 +35,21 @@ const months = [...monthMap.entries()].sort((a, b) => b[0].localeCompare(a[0]));
 const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
 ---
 
-<BaseLayout title="文章列表 — My Blog" description="所有文章列表" currentPath={withBase('/blog')}>
+<BaseLayout
+  title="文章列表 — My Blog"
+  description="所有文章列表"
+  currentPath={withBase('/blog')}
+  sidebarIndex={{ years, months, tags }}
+>
+  <RightSidebar slot="right-sidebar" posts={allPosts} />
+
   <div class="section">
     <div class="blog-header">
-      <h1 class="page-title">📖 全部文章</h1>
+      <h1 class="page-title">全部文章</h1>
       <p class="page-subtitle">共 {allPosts.length} 篇</p>
     </div>
 
     <div class="blog-layout">
-      <!-- 左侧筛选栏 -->
-      <aside class="filter-sidebar">
-        <div class="filter-panel">
-          <!-- 年份 -->
-          <div class="filter-group">
-            <h3 class="filter-label">年份</h3>
-            <div class="filter-list">
-              {years.map(([y, count]) => (
-                <button class="filter-chip" data-filter="year" data-value={y}>
-                  <span class="filter-name">{y}</span>
-                  <span class="filter-count">{count}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <!-- 月份 -->
-          {months.length > 1 && (
-            <div class="filter-group">
-              <h3 class="filter-label">月份</h3>
-              <div class="filter-list">
-                {months.map(([m, count]) => (
-                  <button class="filter-chip" data-filter="month" data-value={m}>
-                    <span class="filter-name">{m}</span>
-                    <span class="filter-count">{count}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <!-- 标签 -->
-          <div class="filter-group">
-            <h3 class="filter-label">标签</h3>
-            <div class="filter-list tag-grid">
-              {tags.map(([tag, count]) => (
-                <button class="filter-chip" data-filter="tag" data-value={tag}>
-                  <span class="filter-name">{tag}</span>
-                  <span class="filter-count">{count}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button class="filter-reset" id="filterReset" style="display:none;">清除筛选</button>
-        </div>
-      </aside>
-
-      <!-- 右侧文章列表 -->
       <div class="blog-main">
         {years.map(([year]) => (
           <section class="year-section" data-year={year}>
@@ -124,7 +83,7 @@ const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
 </BaseLayout>
 
 <script>
-  const chips = document.querySelectorAll<HTMLButtonElement>('.filter-chip');
+  const chips = document.querySelectorAll<HTMLElement>('.filter-chip[data-filter]');
   const resetBtn = document.getElementById('filterReset') as HTMLButtonElement | null;
   const noResults = document.getElementById('noResults') as HTMLDivElement | null;
 
@@ -134,6 +93,25 @@ const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
     tag: new Set(),
   };
   let activeCategory: string | null = null;
+
+  const initialParams = new URLSearchParams(window.location.search);
+  (['year', 'month', 'tag'] as const).forEach(type => {
+    initialParams.getAll(type).forEach(value => {
+      if (value) {
+        filters[type].add(value);
+        activeCategory = type;
+      }
+    });
+  });
+
+  function syncFilterUrl() {
+    const params = new URLSearchParams();
+    if (activeCategory) {
+      filters[activeCategory].forEach(value => params.append(activeCategory!, value));
+    }
+    const query = params.toString();
+    history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+  }
 
   function apply() {
     let visibleCount = 0;
@@ -174,7 +152,8 @@ const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
   }
 
   chips.forEach(chip => {
-    chip.addEventListener('click', () => {
+    chip.addEventListener('click', (event) => {
+      event.preventDefault();
       const type = chip.dataset.filter!;
       const value = chip.dataset.value!;
 
@@ -192,6 +171,7 @@ const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
         activeCategory = type;
       }
 
+      syncFilterUrl();
       apply();
     });
   });
@@ -201,15 +181,18 @@ const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
     filters.month.clear();
     filters.tag.clear();
     activeCategory = null;
+    syncFilterUrl();
     apply();
   });
+
+  apply();
 </script>
 
 <style>
   .section {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 2.5rem 2rem 2rem;
+    width: 100%;
+    max-width: var(--max-width-wide);
+    padding: 0.8rem 0 2rem;
   }
 
   .blog-header {
@@ -229,124 +212,10 @@ const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
   }
 
   .blog-layout {
-    display: flex;
-    gap: 2rem;
-    align-items: flex-start;
+    display: block;
   }
 
-  /* 左侧筛选栏 */
-  .filter-sidebar {
-    width: 260px;
-    flex-shrink: 0;
-    position: sticky;
-    top: calc(var(--nav-height) + 1.5rem);
-    align-self: flex-start;
-    max-height: calc(100vh - var(--nav-height) - 3rem);
-    overflow-y: auto;
-  }
-
-  .filter-panel {
-    background: var(--bg-card);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem;
-  }
-
-  .filter-group + .filter-group {
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--border-light);
-  }
-
-  .filter-label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-secondary);
-    margin-bottom: 0.7rem;
-  }
-
-  .filter-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-  }
-
-  .tag-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.4rem;
-  }
-
-  .filter-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.4rem;
-    padding: 0.3rem 0.5rem;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius);
-    background: var(--bg-surface);
-    color: var(--text-secondary);
-    font-size: 0.82rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    font-family: inherit;
-    min-width: 0;
-  }
-
-  .tag-grid .filter-chip {
-    width: 100%;
-  }
-
-  .filter-chip:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .filter-chip.active {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-  }
-
-  .filter-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .filter-count {
-    font-size: 0.7rem;
-    opacity: 0.6;
-    flex-shrink: 0;
-  }
-
-  .filter-chip.active .filter-count {
-    opacity: 0.85;
-  }
-
-  .filter-reset {
-    width: 100%;
-    margin-top: 1.25rem;
-    padding: 0.4rem;
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-    background: transparent;
-    color: var(--text-tertiary);
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    font-family: inherit;
-  }
-
-  .filter-reset:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
-
-  /* 右侧文章列表 */
+  /* 文章列表 */
   .blog-main {
     flex: 1;
     min-width: 0;
@@ -378,24 +247,7 @@ const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
 
   @media (max-width: 960px) {
     .section {
-      padding: 2rem 1.5rem;
-    }
-    .blog-layout {
-      flex-direction: column;
-    }
-    .filter-sidebar {
-      position: static;
-      width: 100%;
-      max-height: none;
-      overflow-y: visible;
-    }
-    .tag-grid {
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    }
-    .filter-reset {
-      width: auto;
-      margin-top: 0;
-      padding: 0.3rem 0.8rem;
+      padding: 1.4rem 0 2rem;
     }
   }
 </style>

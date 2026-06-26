@@ -1,0 +1,135 @@
+---
+import { withBase } from '../utils/url';
+import TableOfContents from './TableOfContents.astro';
+
+const { posts = [], headings = [] } = Astro.props;
+
+const sortedPosts = [...posts].sort((a, b) => {
+  const bDate = new Date(b.data.updatedDate || b.data.pubDate).valueOf();
+  const aDate = new Date(a.data.updatedDate || a.data.pubDate).valueOf();
+  return bDate - aDate;
+});
+
+const recentPosts = sortedPosts.slice(0, 4);
+const tagMap = new Map<string, number>();
+posts.forEach((post) => {
+  (post.data.tags || []).forEach((tag: string) => {
+    tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+  });
+});
+const trendingTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+const tagUrl = (tag: string) => withBase(`/tags/${tag.toLowerCase().replace(/\s+/g, '-')}`);
+---
+
+<div class="right-sidebar">
+  {recentPosts.length > 0 && (
+    <section class="side-widget">
+      <h2 class="side-title">Recently Updated</h2>
+      <nav class="recent-list" aria-label="最近更新文章">
+        {recentPosts.map((post) => (
+          <a href={withBase(`/blog/${post.slug}`)}>{post.data.title}</a>
+        ))}
+      </nav>
+    </section>
+  )}
+
+  {trendingTags.length > 0 && (
+    <section class="side-widget">
+      <h2 class="side-title">Trending Tags</h2>
+      <div class="tag-list">
+        {trendingTags.map(([tag]) => (
+          <a href={tagUrl(tag)}>{tag}</a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {headings.length > 0 && (
+    <section class="side-widget contents-widget">
+      <h2 class="side-title">Contents</h2>
+      <TableOfContents headings={headings} />
+    </section>
+  )}
+</div>
+
+<style>
+  .right-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2.2rem;
+    color: var(--text-secondary);
+  }
+
+  .side-widget {
+    border-left: 1px solid var(--border-light);
+    padding-left: 1rem;
+  }
+
+  .side-title {
+    margin: 0 0 0.85rem;
+    padding: 0;
+    border: 0;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: 0.01em;
+  }
+
+  .recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .recent-list a {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .recent-list a:hover {
+    color: var(--accent);
+  }
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tag-list a {
+    padding: 0.16rem 0.55rem;
+    border: 1px solid var(--border-light);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    font-size: 0.78rem;
+  }
+
+  .tag-list a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .contents-widget :global(.toc) {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .contents-widget :global(.toc-title) {
+    display: none;
+  }
+
+  .contents-widget :global(.toc-item a) {
+    font-size: 0.78rem;
+    padding: 0.18rem 0;
+  }
+
+  @media (max-width: 1180px) {
+    .right-sidebar {
+      display: none;
+    }
+  }
+</style>

@@ -1,95 +1,357 @@
 ---
 import { withBase } from '../utils/url';
 
-const { currentPath = '/' } = Astro.props;
+const { currentPath = '/', sidebarIndex } = Astro.props;
+const years = sidebarIndex?.years || [];
+const months = sidebarIndex?.months || [];
+const tags = sidebarIndex?.tags || [];
+const blogHref = withBase('/blog');
+const filterHref = (type: string, value: string) => `${blogHref}?${type}=${encodeURIComponent(value)}`;
 
 const navLinks = [
-  { href: withBase('/'), label: '首页' },
-  { href: withBase('/blog'), label: '文章' },
-  { href: withBase('/tags'), label: '标签' },
-  { href: withBase('/about'), label: '关于' },
+  { href: withBase('/'), label: '首页', icon: '⌂' },
+  { href: withBase('/blog'), label: '文章', icon: '☰' },
+  { href: withBase('/tags'), label: '标签', icon: '◇' },
+  { href: withBase('/about'), label: '关于', icon: '●' },
 ];
+
+function isActive(href: string) {
+  if (href === withBase('/')) return currentPath === href;
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
 ---
 
-<header class="header">
-  <div class="container-wide header-inner">
-    <nav class="nav">
-      {navLinks.map(link => (
-        <a href={link.href} class={`nav-link${currentPath === link.href ? ' active' : ''}`}>
-          {link.label}
-        </a>
-      ))}
-      <button id="themeToggle" class="theme-toggle" aria-label="切换主题" title="切换深色/浅色模式">
-        <span class="icon-sun">☀️</span>
-        <span class="icon-moon">🌙</span>
-      </button>
-    </nav>
+<aside class="site-sidebar">
+  <div class="profile">
+    <a href={withBase('/')} class="avatar-link" aria-label="返回首页">
+      <img src={withBase('/images/头像.jpeg')} alt="Jungrea 头像" class="avatar" />
+    </a>
+    <a href={withBase('/')} class="site-name">Jungrea</a>
+    <p class="site-desc">代码与思考</p>
   </div>
-</header>
+
+  <nav class="side-nav" aria-label="主导航">
+    {navLinks.map((link) => (
+      <a href={link.href} class:list={['side-nav-link', { active: isActive(link.href) }]}>
+        <span class="nav-icon" aria-hidden="true">{link.icon}</span>
+        <span>{link.label}</span>
+      </a>
+    ))}
+  </nav>
+
+  {(years.length > 0 || months.length > 0 || tags.length > 0) && (
+    <div class="sidebar-index" aria-label="文章索引">
+      {years.length > 0 && (
+        <section class="index-group">
+          <h3 class="index-title">年份</h3>
+          <div class="index-list">
+            {years.map(([year, count]) => (
+              <a href={filterHref('year', year)} class="filter-chip index-chip" data-filter="year" data-value={year}>
+                <span>{year}</span>
+                <span class="index-count">{count}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {months.length > 0 && (
+        <section class="index-group">
+          <h3 class="index-title">月份</h3>
+          <div class="index-list">
+            {months.map(([month, count]) => (
+              <a href={filterHref('month', month)} class="filter-chip index-chip" data-filter="month" data-value={month}>
+                <span>{month}</span>
+                <span class="index-count">{count}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {tags.length > 0 && (
+        <section class="index-group">
+          <h3 class="index-title">标签</h3>
+          <div class="index-list tag-index-list">
+            {tags.map(([tag, count]) => (
+              <a href={filterHref('tag', tag)} class="filter-chip index-chip" data-filter="tag" data-value={tag}>
+                <span>{tag}</span>
+                <span class="index-count">{count}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <button class="filter-reset" id="filterReset" style="display:none;">清除筛选</button>
+    </div>
+  )}
+
+  <button id="themeToggle" class="theme-toggle" aria-label="切换主题" title="切换深色/浅色模式">
+    <span class="icon-sun">☀️</span>
+    <span class="icon-moon">🌙</span>
+  </button>
+</aside>
 
 <style>
-  .header {
+  .site-sidebar {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    inset: 0 auto 0 0;
     z-index: 100;
-    height: var(--nav-height);
-    background: var(--bg-body);
-    border-bottom: 1px solid var(--border-light);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    width: var(--sidebar-width);
+    padding: 2.4rem 1.55rem 1.4rem;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
   }
 
-  .header-inner {
+  .profile {
+    text-align: center;
+    margin-bottom: 2.55rem;
+  }
+
+  .avatar-link {
+    display: inline-flex;
+    border-radius: 50%;
+    margin-bottom: 0.8rem;
+  }
+
+  .avatar {
+    width: 104px;
+    height: 104px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
+  }
+
+  .site-name {
+    display: block;
+    color: var(--text-primary);
+    font-size: 1.62rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .site-name:hover {
+    color: var(--text-primary);
+  }
+
+  .site-desc {
+    margin: 0.45rem 0 0;
+    color: var(--text-tertiary);
+    font-size: 0.86rem;
+    font-style: italic;
+  }
+
+  .side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .side-nav-link {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    height: 100%;
-  }
-
-  .nav {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .nav-link {
-    padding: 0.35rem 0.75rem;
-    border-radius: 6px;
+    gap: 0.7rem;
+    min-height: 2.45rem;
+    padding: 0.58rem 0.78rem;
+    border-radius: var(--radius);
     color: var(--text-secondary);
     font-size: 0.9rem;
-    transition: all 0.2s;
+    font-weight: 800;
+    letter-spacing: 0.03em;
   }
-  .nav-link:hover { color: var(--text-primary); background: var(--bg-surface); }
-  .nav-link.active { color: var(--accent); }
+
+  .side-nav-link:hover,
+  .side-nav-link.active {
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+  }
+
+  .nav-icon {
+    width: 1.15rem;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+
+  .sidebar-index {
+    margin-top: auto;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .index-group + .index-group {
+    margin-top: 1.35rem;
+  }
+
+  .index-title {
+    margin: 0 0 0.68rem;
+    padding: 0;
+    border: 0;
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+  }
+
+  .index-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.48rem;
+  }
+
+  .tag-index-list {
+    max-height: 10.5rem;
+    overflow-y: auto;
+    padding-right: 0.15rem;
+  }
+
+  .index-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    padding: 0.28rem 0.58rem;
+    border: 1px solid var(--border-light);
+    border-radius: 0.7rem;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .index-chip:hover,
+  .index-chip.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--bg-card-hover);
+  }
+
+  .index-count {
+    color: var(--text-tertiary);
+    font-size: 0.74rem;
+  }
+
+  .filter-reset {
+    margin-top: 1.2rem;
+    padding: 0.28rem 0.72rem;
+    border: 1px dashed var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-tertiary);
+    font-family: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+
+  .filter-reset:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 
   .theme-toggle {
-    background: none;
+    margin-top: 1.2rem;
+    align-self: flex-start;
+    width: 2.1rem;
+    height: 2.1rem;
     border: 1px solid var(--border-light);
-    border-radius: 6px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    color: var(--text-secondary);
     cursor: pointer;
-    padding: 0.35rem 0.5rem;
-    margin-left: 0.5rem;
-    font-size: 0.85rem;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     transition: all 0.2s;
   }
-  .theme-toggle:hover { border-color: var(--border); background: var(--bg-surface); }
 
-  .icon-sun, .icon-moon {
+  .theme-toggle:hover {
+    border-color: var(--border);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+  }
+
+  .icon-sun,
+  .icon-moon {
     line-height: 1;
   }
+
   :root.light .icon-moon { display: none; }
   :root:not(.light) .icon-sun { display: none; }
+
+  @media (max-width: 900px) {
+    .site-sidebar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: auto;
+      padding: 0.75rem 1rem;
+      border-right: 0;
+      border-bottom: 1px solid var(--border-light);
+      flex-direction: row;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin: 0;
+      text-align: left;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+    }
+
+    .avatar-link,
+    .site-desc {
+      margin: 0;
+    }
+
+    .site-name {
+      font-size: 1rem;
+    }
+
+    .site-desc {
+      display: none;
+    }
+
+    .side-nav {
+      flex: 1;
+      flex-direction: row;
+      justify-content: flex-end;
+      overflow-x: auto;
+    }
+
+    .sidebar-index {
+      display: none;
+    }
+
+    .side-nav-link {
+      flex-shrink: 0;
+      padding: 0.35rem 0.55rem;
+    }
+
+    .theme-toggle {
+      margin: 0;
+      flex-shrink: 0;
+    }
+  }
 </style>
 
 <script>
   const btn = document.getElementById('themeToggle');
   const root = document.documentElement;
 
-  // 初始读取 localStorage
   const saved = localStorage.getItem('theme');
   if (saved === 'light') root.classList.add('light');
   else if (!saved && window.matchMedia('(prefers-color-scheme: light)').matches) root.classList.add('light');
