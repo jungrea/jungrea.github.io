@@ -174,8 +174,9 @@
     }
     input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14); }
 
-    .app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; overflow: hidden; }
+    .app { display: grid; grid-template-columns: 320px 1fr; height: 100vh; overflow: hidden; transition: grid-template-columns 0.22s ease; }
     .sidebar {
+      position: relative;
       display: flex;
       flex-direction: column;
       height: 100vh;
@@ -184,7 +185,56 @@
       background: var(--panel);
       backdrop-filter: blur(18px);
       padding: 1rem;
+      overflow: visible;
+      transition: padding 0.22s ease;
+    }
+    .sidebar > :not(.sidebar-collapse-toggle) {
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .sidebar-collapse-toggle {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      z-index: 30;
+      width: 24px;
+      height: 128px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border-radius: 999px 0 0 999px;
+      border: 1px solid var(--line);
+      border-right: 0;
+      background: var(--surface-solid);
+      color: var(--primary-strong);
+      font-size: 1.15rem;
+      font-weight: 900;
+      box-shadow: 0 14px 34px color-mix(in srgb, var(--text) 14%, transparent);
+      transform: translate(50%, -50%);
+    }
+    .sidebar-collapse-toggle:hover {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+    body.sidebar-collapsed .app { grid-template-columns: 22px 1fr; }
+    body.sidebar-collapsed .sidebar {
+      padding: 0;
       overflow: hidden;
+    }
+    body.sidebar-collapsed .sidebar > :not(.sidebar-collapse-toggle) {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-14px);
+    }
+    body.sidebar-collapsed .sidebar-collapse-toggle {
+      inset: 0 0 0 auto;
+      width: 22px;
+      height: 100%;
+      border-radius: 0;
+      border: 0;
+      border-right: 1px solid var(--line);
+      box-shadow: none;
+      transform: none;
     }
     .brand { margin-bottom: 1rem; flex: 0 0 auto; }
     .brand h1 { margin: 0 0 0.25rem; font-size: 1.25rem; }
@@ -216,7 +266,7 @@
     .tag-row { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.45rem; }
     .tag { font-size: 0.72rem; color: var(--primary-strong); background: var(--primary-soft); border: 1px solid var(--border-strong); border-radius: 999px; padding: 0.1rem 0.45rem; font-weight: 750; }
 
-    .main { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100vh; min-width: 0; overflow: hidden; position: relative; }
+    .main { display: grid; grid-template-rows: auto auto minmax(0, 1fr); height: 100vh; min-width: 0; overflow: hidden; position: relative; }
     .toolbar {
       display: flex;
       align-items: center;
@@ -235,6 +285,46 @@
     .toolbar-left::-webkit-scrollbar { display: none; }
     .toolbar-right { flex: 0 1 auto; justify-content: flex-end; max-width: 54%; }
     .toolbar-left > *, .toolbar-right > * { flex: 0 0 auto; }
+    .markdown-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.55rem 1rem;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 88%, var(--surface-solid));
+      backdrop-filter: blur(18px);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+    .markdown-toolbar::-webkit-scrollbar { display: none; }
+    .md-tool-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding-right: 0.65rem;
+      border-right: 1px dashed var(--line);
+      flex: 0 0 auto;
+    }
+    .md-tool-group:last-child { border-right: 0; padding-right: 0; }
+    .md-tool {
+      min-width: 2.15rem;
+      height: 2.05rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.62rem;
+      border-radius: 10px;
+      color: var(--primary-strong);
+      font-weight: 850;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: 0 5px 16px color-mix(in srgb, var(--text) 8%, transparent);
+    }
+    .md-tool:hover {
+      background: var(--primary-soft);
+      border-color: var(--primary);
+    }
     .status { color: var(--muted); font-size: 0.85rem; max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     #statusText { max-width: 12rem; }
     .status.dirty { color: var(--yellow); }
@@ -694,8 +784,10 @@
 
     @media (max-width: 1100px) {
       body { overflow: auto; }
-      .app { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow: visible; }
-      .sidebar { height: 42vh; border-right: 0; border-bottom: 1px solid var(--line); }
+      .app, body.sidebar-collapsed .app { grid-template-columns: 1fr; height: auto; min-height: 100vh; overflow: visible; }
+      .sidebar, body.sidebar-collapsed .sidebar { height: 42vh; border-right: 0; border-bottom: 1px solid var(--line); padding: 1rem; overflow: hidden; }
+      .sidebar-collapse-toggle { display: none; }
+      body.sidebar-collapsed .sidebar > :not(.sidebar-collapse-toggle) { opacity: 1; pointer-events: auto; transform: none; }
       .main { height: 100vh; }
       .info-panel { right: 0; width: min(390px, calc(100vw - 2rem)); }
       .workspace, .bottom { grid-template-columns: 1fr; }
@@ -731,6 +823,9 @@
       </section>
       <p class="list-hint">文章列表固定在左侧，可在列表内独立滚动。</p>
       <div class="post-list" id="postList"></div>
+      <button class="sidebar-collapse-toggle" id="sidebarCollapseBtn" type="button" aria-label="折叠左侧文章栏" aria-expanded="true" title="折叠左侧文章栏">
+        <span id="sidebarCollapseIcon" aria-hidden="true">‹</span>
+      </button>
     </aside>
 
     <main class="main">
@@ -789,6 +884,37 @@
           <span class="status" id="statusText">准备就绪</span>
         </div>
       </header>
+
+      <section class="markdown-toolbar" id="markdownToolbar" aria-label="Markdown 快捷工具栏">
+        <div class="md-tool-group" aria-label="编辑历史">
+          <button class="md-tool" type="button" data-md-action="undo" title="撤销">↶</button>
+          <button class="md-tool" type="button" data-md-action="redo" title="重做">↷</button>
+        </div>
+        <div class="md-tool-group" aria-label="文本样式">
+          <button class="md-tool" type="button" data-md-action="bold" title="加粗">B</button>
+          <button class="md-tool" type="button" data-md-action="strike" title="删除线">S</button>
+          <button class="md-tool" type="button" data-md-action="italic" title="斜体">I</button>
+          <button class="md-tool" type="button" data-md-action="inline-code" title="行内代码">&lt;/&gt;</button>
+        </div>
+        <div class="md-tool-group" aria-label="标题">
+          <button class="md-tool" type="button" data-md-action="h1" title="一级标题">H1</button>
+          <button class="md-tool" type="button" data-md-action="h2" title="二级标题">H2</button>
+          <button class="md-tool" type="button" data-md-action="h3" title="三级标题">H3</button>
+        </div>
+        <div class="md-tool-group" aria-label="列表">
+          <button class="md-tool" type="button" data-md-action="unordered-list" title="无序列表">• List</button>
+          <button class="md-tool" type="button" data-md-action="ordered-list" title="有序列表">1. List</button>
+          <button class="md-tool" type="button" data-md-action="task-list" title="任务列表">☑ Task</button>
+        </div>
+        <div class="md-tool-group" aria-label="插入内容">
+          <button class="md-tool" type="button" data-md-action="link" title="链接">🔗</button>
+          <button class="md-tool" type="button" data-md-action="image" title="图片">🖼</button>
+          <button class="md-tool" type="button" data-md-action="code-block" title="代码块">Code</button>
+          <button class="md-tool" type="button" data-md-action="quote" title="引用">引用</button>
+          <button class="md-tool" type="button" data-md-action="table" title="表格">表格</button>
+          <button class="md-tool" type="button" data-md-action="divider" title="分割线">分割线</button>
+        </div>
+      </section>
 
       <section class="workspace">
         <div class="pane editor-pane">
@@ -910,6 +1036,22 @@
       tags: $('tagsInput'),
       slug: $('slugInput'),
     };
+    const SIDEBAR_COLLAPSED_KEY = 'blog-editor-sidebar-collapsed';
+
+    function setSidebarCollapsed(collapsed, persist = true) {
+      document.body.classList.toggle('sidebar-collapsed', collapsed);
+      const button = $('sidebarCollapseBtn');
+      const icon = $('sidebarCollapseIcon');
+      if (button) {
+        button.setAttribute('aria-expanded', String(!collapsed));
+        button.setAttribute('aria-label', collapsed ? '展开左侧文章栏' : '折叠左侧文章栏');
+        button.title = collapsed ? '展开左侧文章栏' : '折叠左侧文章栏';
+      }
+      if (icon) icon.textContent = collapsed ? '›' : '‹';
+      if (persist) localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? '1' : '0');
+    }
+
+    setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1', false);
 
     marked.setOptions({
       highlight(code, lang) {
@@ -1507,14 +1649,101 @@
       closeImagePanel();
     }
 
-    function insertAtCursor(text) {
-      const start = editor.selectionStart;
-      const end = editor.selectionEnd;
-      editor.value = `${editor.value.slice(0, start)}${text}${editor.value.slice(end)}`;
-      editor.selectionStart = editor.selectionEnd = start + text.length;
+    function finishEditorCommand(selectionStart, selectionEnd = selectionStart) {
+      editor.selectionStart = selectionStart;
+      editor.selectionEnd = selectionEnd;
       editor.focus();
       renderPreview();
       markChanged();
+      if (!$('wxPanel').classList.contains('hidden')) syncWxMarkdown();
+    }
+
+    function replaceEditorRange(start, end, text, selectionStart = start + text.length, selectionEnd = selectionStart) {
+      editor.setRangeText(text, start, end, 'end');
+      finishEditorCommand(selectionStart, selectionEnd);
+    }
+
+    function insertAtCursor(text, cursorOffset = text.length, selectLength = 0) {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const cursor = start + cursorOffset;
+      replaceEditorRange(start, end, text, cursor, cursor + selectLength);
+    }
+
+    function wrapSelection(prefix, suffix = prefix) {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const selected = editor.value.slice(start, end);
+      const replacement = `${prefix}${selected}${suffix}`;
+      const innerStart = start + prefix.length;
+      const innerEnd = innerStart + selected.length;
+      replaceEditorRange(start, end, replacement, selected ? start : innerStart, selected ? start + replacement.length : innerEnd);
+    }
+
+    function replaceSelectedLines(transform) {
+      const value = editor.value;
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const lineStart = value.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+      const adjustedEnd = end > start && value[end - 1] === '\n' ? end - 1 : end;
+      const nextBreak = value.indexOf('\n', adjustedEnd);
+      const lineEnd = nextBreak === -1 ? value.length : nextBreak;
+      const selectedBlock = value.slice(lineStart, lineEnd);
+      const replacement = selectedBlock.split('\n').map(transform).join('\n');
+      replaceEditorRange(lineStart, lineEnd, replacement, lineStart, lineStart + replacement.length);
+    }
+
+    function applyHeading(level) {
+      const marker = `${'#'.repeat(level)} `;
+      replaceSelectedLines((line) => `${marker}${line.replace(/^#{1,6}\s+/, '')}`);
+    }
+
+    function insertLinkMarkdown() {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const selected = editor.value.slice(start, end) || '链接文本';
+      const replacement = `[${selected}](https://)`;
+      const urlStart = start + selected.length + 3;
+      replaceEditorRange(start, end, replacement, urlStart, urlStart + 8);
+    }
+
+    function insertCodeBlock() {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const selected = editor.value.slice(start, end);
+      const replacement = selected ? `\n\`\`\`js\n${selected}\n\`\`\`\n` : '\n```js\n\n```\n';
+      const cursor = selected ? start + replacement.length : start + 7;
+      replaceEditorRange(start, end, replacement, cursor, cursor);
+    }
+
+    function insertTableTemplate() {
+      const template = '\n| 列 1 | 列 2 | 列 3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |\n';
+      insertAtCursor(template, template.length);
+    }
+
+    function applyMarkdownAction(action) {
+      if (action === 'undo' || action === 'redo') {
+        editor.focus();
+        document.execCommand(action);
+        renderPreview();
+        return;
+      }
+      if (action === 'bold') return wrapSelection('**');
+      if (action === 'strike') return wrapSelection('~~');
+      if (action === 'italic') return wrapSelection('*');
+      if (action === 'inline-code') return wrapSelection('`');
+      if (action === 'h1') return applyHeading(1);
+      if (action === 'h2') return applyHeading(2);
+      if (action === 'h3') return applyHeading(3);
+      if (action === 'unordered-list') return replaceSelectedLines((line) => `- ${line}`);
+      if (action === 'ordered-list') return replaceSelectedLines((line, index) => `${index + 1}. ${line}`);
+      if (action === 'task-list') return replaceSelectedLines((line) => `- [ ] ${line}`);
+      if (action === 'quote') return replaceSelectedLines((line) => `> ${line}`);
+      if (action === 'link') return insertLinkMarkdown();
+      if (action === 'image') return openImagePanel();
+      if (action === 'code-block') return insertCodeBlock();
+      if (action === 'table') return insertTableTemplate();
+      if (action === 'divider') return insertAtCursor('\n---\n');
     }
 
     async function runBuild() {
@@ -1566,6 +1795,9 @@
       await loadPosts();
     }
 
+    document.querySelectorAll('[data-md-action]').forEach((button) => {
+      button.addEventListener('click', () => applyMarkdownAction(button.dataset.mdAction));
+    });
     editor.addEventListener('input', () => { renderPreview(); markChanged(); if (!$('wxPanel').classList.contains('hidden')) syncWxMarkdown(); });
     editor.addEventListener('scroll', () => syncScroll(editor, preview));
     preview.addEventListener('scroll', () => {
@@ -1627,9 +1859,12 @@
     });
     $('tocDrawer').addEventListener('click', (event) => event.stopPropagation());
     $('opsToggle').addEventListener('click', () => $('opsDrawer').classList.toggle('open'));
-    $('splitBtn').addEventListener('click', () => { document.body.className = ''; });
-    $('editBtn').addEventListener('click', () => { document.body.className = 'edit-only'; });
-    $('previewBtn').addEventListener('click', () => { document.body.className = 'preview-only'; });
+    $('sidebarCollapseBtn').addEventListener('click', () => {
+      setSidebarCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+    });
+    $('splitBtn').addEventListener('click', () => { document.body.classList.remove('edit-only', 'preview-only'); });
+    $('editBtn').addEventListener('click', () => { document.body.classList.remove('preview-only'); document.body.classList.add('edit-only'); });
+    $('previewBtn').addEventListener('click', () => { document.body.classList.remove('edit-only'); document.body.classList.add('preview-only'); });
     $('buildBtn').addEventListener('click', () => runBuild().catch((error) => alert(error.message)));
     $('startPreviewBtn').addEventListener('click', () => startPreview().catch((error) => alert(error.message)));
     $('buildPreviewBtn').addEventListener('click', async () => {

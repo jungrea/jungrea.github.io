@@ -91,6 +91,17 @@ test('single-pane edit and preview modes use full-width workspace', () => {
   assert.doesNotMatch(html, /body\.edit-only \.workspace \{ grid-template-columns: 1fr 0; \}/);
 });
 
+test('sidebar can collapse to a narrow left rail and remember state', () => {
+  assert.match(html, /id="sidebarCollapseBtn"/);
+  assert.match(html, /class="sidebar-collapse-toggle"/);
+  assert.match(html, /body\.sidebar-collapsed \.app \{ grid-template-columns: 22px 1fr; \}/);
+  assert.match(html, /SIDEBAR_COLLAPSED_KEY/);
+  assert.match(html, /function setSidebarCollapsed/);
+  assert.match(html, /localStorage\.setItem\(SIDEBAR_COLLAPSED_KEY/);
+  assert.match(html, /sidebarCollapseIcon/);
+  assert.match(html, /classList\.contains\('sidebar-collapsed'\)/);
+});
+
 test('editor supports inserting uploaded or existing images', () => {
   assert.match(html, /id="imageToggle"/);
   assert.match(html, /id="imagePanel"/);
@@ -100,6 +111,17 @@ test('editor supports inserting uploaded or existing images', () => {
   assert.match(html, /function insertImageMarkdown/);
   assert.match(html, /\/api\/images/);
   assert.match(html, /\/api\/image/);
+});
+
+test('markdown editor exposes a syntax shortcut toolbar', () => {
+  assert.match(html, /id="markdownToolbar"/);
+  assert.match(html, /data-md-action="bold"/);
+  assert.match(html, /data-md-action="h1"/);
+  assert.match(html, /data-md-action="unordered-list"/);
+  assert.match(html, /data-md-action="code-block"/);
+  assert.match(html, /function applyMarkdownAction/);
+  assert.match(html, /function wrapSelection/);
+  assert.match(html, /function replaceSelectedLines/);
 });
 
 test('image picker keeps search above grid and shows newest images first', () => {
