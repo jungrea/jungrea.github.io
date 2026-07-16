@@ -48,6 +48,12 @@ test('markdown preview uses themed rendering styles', () => {
   assert.match(html, /function enhanceCodeBlocks/);
 });
 
+test('markdown task list checkboxes stay inline in preview', () => {
+  assert.match(html, /\.preview li input\[type="checkbox"\] \{[\s\S]*width: auto/);
+  assert.match(html, /\.preview li input\[type="checkbox"\] \{[\s\S]*margin: 0 0\.55em 0 0/);
+  assert.match(html, /\.preview li:has\(> input\[type="checkbox"\]\) \{[^}]*list-style: none/);
+});
+
 test('light theme keeps pane titles and tags readable', () => {
   assert.match(html, /\.pane-title \{[\s\S]*background: var\(--surface-subtle\)/);
   assert.match(html, /\.pane-title \{[\s\S]*color: var\(--text\)/);
@@ -73,6 +79,16 @@ test('sidebar supports year and month filtering by pubDate', () => {
   assert.match(html, /function toggleDateFilter/);
   assert.match(html, /activeFilterType/);
   assert.match(html, /post\.meta\.pubDate/);
+});
+
+test('sidebar article list uses compact typography for scan-friendly navigation', () => {
+  assert.match(html, /\.post-list \{[^}]*gap: 0\.4rem/);
+  assert.match(html, /\.post-item \{[\s\S]*padding: 0\.62rem/);
+  assert.match(html, /\.post-title \{[^}]*font-size: 0\.92rem/);
+  assert.match(html, /\.post-title \{[^}]*font-weight: 750/);
+  assert.match(html, /\.post-meta \{[^}]*font-size: 0\.72rem/);
+  assert.match(html, /\.post-meta \{[^}]*white-space: nowrap/);
+  assert.match(html, /\.tag \{[^}]*font-size: 0\.68rem/);
 });
 
 test('article file can be renamed from title or slug explicitly without stretching toolbar', () => {
@@ -122,6 +138,23 @@ test('markdown editor exposes a syntax shortcut toolbar', () => {
   assert.match(html, /function applyMarkdownAction/);
   assert.match(html, /function wrapSelection/);
   assert.match(html, /function replaceSelectedLines/);
+});
+
+test('code block shortcut defaults to python fences', () => {
+  assert.match(html, /function insertCodeBlock/);
+  assert.match(html, /```python/);
+  assert.doesNotMatch(html, /```js/);
+});
+
+test('writing assistant visual refresh reduces toolbar and preview noise', () => {
+  assert.match(html, /class="toolbar-group primary-actions"/);
+  assert.match(html, /class="toolbar-group view-actions"/);
+  assert.match(html, /\.toolbar-group \{[\s\S]*border-right: 1px solid var\(--line\)/);
+  assert.match(html, /\.md-tool \{[\s\S]*box-shadow: none/);
+  assert.match(html, /\.preview > :not\(\.code-block\):not\(table\) \{[^}]*max-width: 860px/);
+  assert.match(html, /\.preview h3 \{ color: var\(--text\);/);
+  assert.match(html, /\.toc-toggle \{[\s\S]*width: 30px/);
+  assert.match(html, /\.info-tab \{[\s\S]*box-shadow: 0 6px 16px/);
 });
 
 test('image picker keeps search above grid and shows newest images first', () => {
