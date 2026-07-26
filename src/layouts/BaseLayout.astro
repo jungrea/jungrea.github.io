@@ -56,7 +56,7 @@ const globalSidebarIndex = sidebarIndex || {
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary" />
     <script is:inline>
-      (function(){var t=localStorage.getItem('theme');if(t==='light'||(!t&&window.matchMedia('(prefers-color-scheme:light)').matches)){document.documentElement.classList.add('light')}})()
+      (function(){var t=localStorage.getItem('theme');if(t!=='dark'){document.documentElement.classList.add('light')}})()
     </script>
   </head>
   <body>
@@ -97,7 +97,7 @@ const globalSidebarIndex = sidebarIndex || {
     position: sticky;
     top: 1.5rem;
     max-height: calc(100vh - 3rem);
-    overflow-y: auto;
+    overflow: hidden;
     padding-top: 0.2rem;
   }
 

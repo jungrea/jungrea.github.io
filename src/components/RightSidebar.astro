@@ -10,44 +10,25 @@ const sortedPosts = [...posts].sort((a, b) => {
   return bDate - aDate;
 });
 
-const recentPosts = sortedPosts.slice(0, 4);
-const tagMap = new Map<string, number>();
-posts.forEach((post) => {
-  (post.data.tags || []).forEach((tag: string) => {
-    tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
-  });
-});
-const trendingTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
-const tagUrl = (tag: string) => withBase(`/tags/${tag.toLowerCase().replace(/\s+/g, '-')}`);
+const recentPosts = sortedPosts.slice(0, 12);
 ---
 
-<div class="right-sidebar">
+<div class:list={['right-sidebar', { 'has-contents': headings.length > 0 }]}>
+  {headings.length > 0 && (
+    <section class="side-widget contents-widget">
+      <h2 class="side-title">Contents</h2>
+      <TableOfContents headings={headings} />
+    </section>
+  )}
+
   {recentPosts.length > 0 && (
-    <section class="side-widget">
-      <h2 class="side-title">Recently Updated</h2>
+    <section class="side-widget recent-widget">
+      <h2 class="side-title">最近更新</h2>
       <nav class="recent-list" aria-label="最近更新文章">
         {recentPosts.map((post) => (
           <a href={withBase(`/blog/${post.slug}`)}>{post.data.title}</a>
         ))}
       </nav>
-    </section>
-  )}
-
-  {trendingTags.length > 0 && (
-    <section class="side-widget">
-      <h2 class="side-title">Trending Tags</h2>
-      <div class="tag-list">
-        {trendingTags.map(([tag]) => (
-          <a href={tagUrl(tag)}>{tag}</a>
-        ))}
-      </div>
-    </section>
-  )}
-
-  {headings.length > 0 && (
-    <section class="side-widget contents-widget">
-      <h2 class="side-title">Contents</h2>
-      <TableOfContents headings={headings} />
     </section>
   )}
 </div>
@@ -60,9 +41,35 @@ const tagUrl = (tag: string) => withBase(`/tags/${tag.toLowerCase().replace(/\s+
     color: var(--text-secondary);
   }
 
+  .right-sidebar.has-contents {
+    height: calc(100vh - 3rem);
+    gap: 0;
+  }
+
+  .right-sidebar.has-contents .contents-widget {
+    flex: 3 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .right-sidebar.has-contents .recent-widget {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-top: 1.2rem;
+  }
+
   .side-widget {
     border-left: 1px solid var(--border-light);
     padding-left: 1rem;
+  }
+
+  .contents-widget {
+    border-left: 0;
+    padding-left: 0;
   }
 
   .side-title {
@@ -79,6 +86,15 @@ const tagUrl = (tag: string) => withBase(`/tags/${tag.toLowerCase().replace(/\s+
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
+    max-height: 12rem;
+    overflow-y: auto;
+    padding-right: 0.35rem;
+  }
+
+  .right-sidebar.has-contents .recent-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
   }
 
   .recent-list a {
@@ -91,24 +107,17 @@ const tagUrl = (tag: string) => withBase(`/tags/${tag.toLowerCase().replace(/\s+
     color: var(--accent);
   }
 
-  .tag-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  .recent-list::-webkit-scrollbar {
+    width: 4px;
   }
 
-  .tag-list a {
-    padding: 0.16rem 0.55rem;
-    border: 1px solid var(--border-light);
+  .recent-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .recent-list::-webkit-scrollbar-thumb {
+    background: var(--border);
     border-radius: 999px;
-    color: var(--text-secondary);
-    background: var(--bg-card);
-    font-size: 0.78rem;
-  }
-
-  .tag-list a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
   }
 
   .contents-widget :global(.toc) {
@@ -118,12 +127,17 @@ const tagUrl = (tag: string) => withBase(`/tags/${tag.toLowerCase().replace(/\s+
     background: transparent;
   }
 
+  .contents-widget > .side-title {
+    font-size: 1.05rem;
+    margin-bottom: 0.95rem;
+  }
+
   .contents-widget :global(.toc-title) {
     display: none;
   }
 
   .contents-widget :global(.toc-item a) {
-    font-size: 0.78rem;
+    font-size: 0.84rem;
     padding: 0.18rem 0;
   }
 

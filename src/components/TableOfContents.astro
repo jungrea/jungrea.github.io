@@ -3,57 +3,177 @@ const { headings = [] } = Astro.props;
 if (!headings || headings.length === 0) return null;
 ---
 
-<nav class="toc" aria-label="目录">
-  <h4 class="toc-title">📑 目录</h4>
-  <ul class="toc-list">
+<nav class="toc" aria-label="目录" data-toc>
+  <h4 class="toc-title">目录</h4>
+  <ul class="toc-list" data-toc-list>
+    <span class="toc-progress" data-toc-progress aria-hidden="true"></span>
     {headings.map(heading => (
       <li class={`toc-item toc-depth-${heading.depth}`}>
-        <a href={`#${heading.slug}`}>{heading.text}</a>
+        <a href={`#${heading.slug}`} data-toc-link>{heading.text}</a>
       </li>
     ))}
   </ul>
 </nav>
 
+<script>
+  const toc = document.querySelector('[data-toc]');
+  const tocList = toc?.querySelector('[data-toc-list]');
+  const links = Array.from(toc?.querySelectorAll('[data-toc-link]') || []);
+
+  const getTargetId = (href) => {
+    const raw = href.slice(1);
+    try {
+      return decodeURIComponent(raw);
+    } catch {
+      return raw;
+    }
+  };
+
+  const entries = links
+    .map((link) => {
+      const href = link.getAttribute('href') || '';
+      const heading = href.startsWith('#') ? document.getElementById(getTargetId(href)) : null;
+      return heading ? { link, heading } : null;
+    })
+    .filter(Boolean);
+
+  const updateTocProgress = () => {
+    if (!tocList || entries.length === 0) return;
+
+    const offset = 120;
+    let activeEntry = null;
+
+    for (const entry of entries) {
+      if (entry.heading.getBoundingClientRect().top <= offset) {
+        activeEntry = entry;
+      } else {
+        break;
+      }
+    }
+
+    links.forEach((link) => link.classList.toggle('is-active', activeEntry?.link === link));
+
+    if (!activeEntry) {
+      tocList.style.setProperty('--toc-progress-height', '0px');
+      return;
+    }
+
+    const listRect = tocList.getBoundingClientRect();
+    const linkRect = activeEntry.link.getBoundingClientRect();
+    const height = linkRect.top - listRect.top + linkRect.height / 2;
+    tocList.style.setProperty('--toc-progress-height', `${Math.max(0, Math.min(listRect.height, height))}px`);
+  };
+
+  let ticking = false;
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      updateTocProgress();
+      ticking = false;
+    });
+  };
+
+  updateTocProgress();
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate);
+</script>
+
 <style>
   .toc {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: 1.25rem;
+    background: transparent;
   }
 
   .toc-title {
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-secondary);
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary);
+    margin-bottom: 0.85rem;
+    padding-bottom: 0;
+    border-bottom: 0;
   }
 
   .toc-list {
+    --toc-progress-height: 0px;
+    position: relative;
     list-style: none;
-    padding: 0;
+    padding: 0 0 0 1.15rem;
     margin: 0;
   }
 
-  .toc-item {
-    margin-bottom: 0.3rem;
-    line-height: 1.4;
+  .toc-list::before,
+  .toc-list::after {
+    content: '';
+    position: absolute;
+    left: 0.18rem;
+    top: 0.2rem;
+    width: 2px;
+    border-radius: 999px;
   }
-  .toc-item a {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: color 0.15s;
-    display: block;
-    padding: 0.15rem 0;
-  }
-  .toc-item a:hover { color: var(--accent); }
 
-  .toc-depth-3 a { padding-left: 1rem; font-size: 0.8rem; }
-  .toc-depth-4 a { padding-left: 2rem; font-size: 0.78rem; color: var(--text-tertiary); }
+  .toc-list::before {
+    bottom: 0.2rem;
+    background: var(--border-light);
+  }
+
+  .toc-list::after {
+    height: var(--toc-progress-height);
+    background: var(--accent);
+    transition: height 0.2s ease;
+    z-index: 1;
+  }
+
+  .toc-item {
+    position: relative;
+    margin-bottom: 0.35rem;
+    line-height: 1.45;
+  }
+
+  .toc-item a {
+    position: relative;
+    display: block;
+    padding: 0.14rem 0;
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+    text-decoration: none;
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+
+  .toc-item a::before {
+    content: '';
+    position: absolute;
+    left: -1.13rem;
+    top: 0.72em;
+    width: 0.42rem;
+    height: 0.42rem;
+    border: 2px solid var(--border-light);
+    border-radius: 50%;
+    background: var(--bg-body);
+    transform: translate(-50%, -50%) scale(0.78);
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    z-index: 2;
+  }
+
+  .toc-item a:hover,
+  .toc-item a.is-active {
+    color: var(--text-primary);
+  }
+
+  .toc-item a.is-active {
+    font-weight: 800;
+    transform: translateX(2px);
+  }
+
+  .toc-item a.is-active::before {
+    border-color: var(--accent);
+    background: var(--accent);
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 0 0 4px var(--accent-glow);
+  }
+
+  .toc-depth-3 a { padding-left: 0.8rem; font-size: 0.8rem; }
+  .toc-depth-4 a { padding-left: 1.6rem; font-size: 0.78rem; color: var(--text-tertiary); }
 
   @media (max-width: 768px) {
     .toc { display: none; }

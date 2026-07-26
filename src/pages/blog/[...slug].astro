@@ -43,6 +43,10 @@ function extractHeadings(md: string) {
 }
 
 const headings = extractHeadings(post.body || '');
+const sortedPosts = [...allPosts].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const currentIndex = sortedPosts.findIndex((item) => item.slug === post.slug);
+const previousPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined;
+const nextPost = currentIndex >= 0 && currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : undefined;
 ---
 
 <BlogPostLayout
@@ -53,6 +57,8 @@ const headings = extractHeadings(post.body || '');
   headings={headings}
   slug={post.slug}
   posts={allPosts}
+  previousPost={previousPost}
+  nextPost={nextPost}
 >
   <Content />
 </BlogPostLayout>

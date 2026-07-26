@@ -1,29 +1,31 @@
 /* ========== 主题变量 ========== */
 :root {
-  --bg-body: #0d1117;
-  --bg-surface: #161b22;
-  --bg-card: #1c2333;
-  --bg-card-hover: #21283b;
-  --bg-code: #151b22;
+  --bg-body: #0f172a;
+  --bg-surface: #111827;
+  --bg-card: #172033;
+  --bg-card-hover: #1f2a44;
+  --bg-code: #111827;
   
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-tertiary: #6e7681;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
   
-  --accent: #58a6ff;
-  --accent-glow: rgba(88, 166, 255, 0.15);
-  --accent-purple: #a371f7;
-  --accent-green: #3fb950;
-  --accent-orange: #d29922;
-  --accent-red: #f85149;
+  --accent: #818cf8;
+  --accent-hover: #a5b4fc;
+  --accent-soft: rgba(129, 140, 248, 0.16);
+  --accent-glow: rgba(129, 140, 248, 0.18);
+  --accent-purple: #a78bfa;
+  --accent-green: #34d399;
+  --accent-orange: #f59e0b;
+  --accent-red: #fb7185;
   
-  --border: #30363d;
-  --border-light: #21262d;
+  --border: #334155;
+  --border-light: #1e293b;
   
   --radius: 8px;
   --radius-lg: 12px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.26);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.32);
   
   --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
   --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
@@ -38,19 +40,28 @@
 /* 浅色模式 */
 :root.light {
   --bg-body: #ffffff;
-  --bg-surface: #f6f8fa;
+  --bg-surface: #fafafa;
   --bg-card: #ffffff;
-  --bg-card-hover: #f3f4f6;
-  --bg-code: #f3f6fa;
+  --bg-card-hover: #f8fafc;
+  --bg-code: #f6f8fb;
   
-  --text-primary: #1f2328;
-  --text-secondary: #656d76;
-  --text-tertiary: #8b949e;
+  --text-primary: #24272e;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
   
-  --border: #d0d7de;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-soft: #eef2ff;
+  --accent-glow: rgba(99, 102, 241, 0.14);
+  --accent-purple: #7c3aed;
+  --accent-green: #059669;
+  --accent-orange: #d97706;
+  --accent-red: #dc2626;
+  
+  --border: #dfe5ec;
   --border-light: #e8ecf0;
-  --shadow: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.1);
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 26px rgba(15, 23, 42, 0.08);
 }
 
 /* ========== 全局重置 ========== */
@@ -71,7 +82,7 @@ body {
 }
 
 a { color: var(--accent); text-decoration: none; transition: color 0.2s; }
-a:hover { color: #79c0ff; }
+a:hover { color: var(--accent-hover); }
 
 img { max-width: 100%; height: auto; }
 

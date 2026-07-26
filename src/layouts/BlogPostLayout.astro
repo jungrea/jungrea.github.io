@@ -12,6 +12,8 @@ interface Props {
   headings?: Array<{ depth: number; text: string; slug: string }>;
   slug: string;
   posts?: any[];
+  previousPost?: any;
+  nextPost?: any;
 }
 
 const {
@@ -22,6 +24,8 @@ const {
   headings = [],
   slug,
   posts = [],
+  previousPost,
+  nextPost,
 } = Astro.props;
 
 const dateStr = new Date(pubDate).toLocaleDateString('zh-CN', {
@@ -53,6 +57,24 @@ const dateStr = new Date(pubDate).toLocaleDateString('zh-CN', {
     <div class="post-content">
       <slot />
     </div>
+
+    {(previousPost || nextPost) && (
+      <nav class="post-nav" aria-label="文章导航">
+        {previousPost ? (
+          <a class="post-nav-card prev" href={withBase(`/blog/${previousPost.slug}`)}>
+            <span class="post-nav-label">← 上一篇</span>
+            <span class="post-nav-title">{previousPost.data.title}</span>
+          </a>
+        ) : <span class="post-nav-card is-placeholder" aria-hidden="true"></span>}
+
+        {nextPost ? (
+          <a class="post-nav-card next" href={withBase(`/blog/${nextPost.slug}`)}>
+            <span class="post-nav-label">下一篇 →</span>
+            <span class="post-nav-title">{nextPost.data.title}</span>
+          </a>
+        ) : <span class="post-nav-card is-placeholder" aria-hidden="true"></span>}
+      </nav>
+    )}
   </article>
 </BaseLayout>
 
@@ -102,6 +124,60 @@ const dateStr = new Date(pubDate).toLocaleDateString('zh-CN', {
     line-height: 1.85;
   }
 
+  .post-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 3.2rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .post-nav-card {
+    min-height: 6rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .post-nav-card:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  .post-nav-card.next {
+    text-align: right;
+  }
+
+  .post-nav-card.is-placeholder {
+    visibility: hidden;
+  }
+
+  .post-nav-label {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: var(--text-tertiary);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .post-nav-title {
+    display: block;
+    color: var(--text-primary);
+    font-size: 0.98rem;
+    font-weight: 800;
+    line-height: 1.45;
+  }
+
+  .post-nav-card:hover .post-nav-title {
+    color: var(--accent);
+  }
+
   @media (max-width: 900px) {
     .post-wrapper {
       max-width: none;
@@ -109,6 +185,18 @@ const dateStr = new Date(pubDate).toLocaleDateString('zh-CN', {
 
     .post-title {
       font-size: 1.7rem;
+    }
+
+    .post-nav {
+      grid-template-columns: 1fr;
+    }
+
+    .post-nav-card.next {
+      text-align: left;
+    }
+
+    .post-nav-card.is-placeholder {
+      display: none;
     }
   }
 </style>
